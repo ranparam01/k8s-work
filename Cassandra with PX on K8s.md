@@ -34,10 +34,10 @@ spec:
 ```
 
 Apply the configuration.
-```kubectl apply -f cassandra-headless-service.yml```
 
+```$ kubectl apply -f cassandra-headless-service.yml```
 
-This example makes use of Dynamic Volume provisioning using PersistentVolumeClaims with [Portworx Volume](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#portworx-volume) as the StorageClass. 
+This example dynamically provisions Portworx volumes using StorageClass API resource. [PersistentVolumeClaims with Portworx Volume](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#portworx-volume)
 
 Create a ```px-storageclass.yml``` with the following content.
 ```
@@ -52,8 +52,9 @@ parameters:
   io_priority: "high"
 
 ```
-Apply the configuratiofn
-```kubectl apply -f px-storageclass.yml```
+Apply the configuration
+
+```$ kubectl apply -f px-storageclass.yml```
 
 Create the Statefulset for Cassandra with 3 replicas. 
 The PodSpec in the statefulset specifies the container image of Cassandra. The property of Statefulsets is that it provides a sticky and a unique identity to the pods. So If in case your pod stop and is scheduled again, it is safe to assume it would 
@@ -152,12 +153,14 @@ spec:
           storage: 1Gi
 ```
 
-Apply the configuration ```kubectl apply -f cassandra-statefulset.yml```
+Apply the configuration 
+
+```$ kubectl apply -f cassandra-statefulset.yml```
 
 ## Post Install status
 
 Verify that the PVC is bound. 
-```kubectl get pvc```
+```$ kubectl get pvc```
 ```
  NAME                         STATUS    VOLUME                                     CAPACITY   ACCESSMODES   STORAGECLASS   AGE
  cassandra-data-cassandra-0   Bound     pvc-e6924b73-72f9-11e7-9d23-42010a8e0002   1Gi        RWO           portworx-sc    2m
@@ -165,13 +168,13 @@ Verify that the PVC is bound.
  cassandra-data-cassandra-2   Bound     pvc-603d4f95-735d-11e7-9d23-42010a8e0002   1Gi        RWO           portworx-sc    1m
 ```
 Verify that the storageclass is created. 
-```kubectl get storageclass```
+```$ kubectl get storageclass```
 ```
 NAME                 TYPE
 portworx-sc          kubernetes.io/portworx-volume 
 ```
 
-```kubectl get pods```
+```$ kubectl get pods```
 ```
 NAME          READY     STATUS    RESTARTS   AGE
 cassandra-0   1/1       Running   0          1m
@@ -179,7 +182,7 @@ cassandra-1   1/1       Running   0          1m
 cassandra-2   0/1       Running   0          47s
 ```
 
-```/opt/pwx/bin/pxctl v l```
+```$ /opt/pwx/bin/pxctl v l```
 ```
 ID                      NAME                                            SIZE    HA      SHARED  ENCRYPTED       IO_PRIORITY     SCALE   STATUS
 651254593135168442      pvc-49e8caf6-735d-11e7-9d23-42010a8e0002        1 GiB   2       no      no              LOW             0       up - attached on 10.142.0.3
@@ -192,7 +195,7 @@ Portworx places the volumes for the cassandra pod locally on the node where the 
 
 Get the pods and the knowledge of the Hosts on which they are scheduled. 
 
-```kubectl get pods -l app=cassandra -o json | jq '.items[] | {"name": .metadata.name,"hostname": .spec.nodeName, "hostIP": .status.hostIP, "PodIP": .status.podIP}'```
+```$ kubectl get pods -l app=cassandra -o json | jq '.items[] | {"name": .metadata.name,"hostname": .spec.nodeName, "hostIP": .status.hostIP, "PodIP": .status.podIP}'```
 ```
 {
   "name": "cassandra-0", 
@@ -214,9 +217,8 @@ Get the pods and the knowledge of the Hosts on which they are scheduled.
 ```
 Portworx applies labels to the node objects where it places the volumes. so in this case ```k8s-0``` node which runs ```cassandra-1``` pod has the label applied to it as ```cassandra-data-cassandra-1=true```. Check output of the command below. 
 
-```kubectl get nodes --show-labels```
 ```
-kubectl get nodes --show-labels (Some of the labels have been removed for brevity)
+$ kubectl get nodes --show-labels (Some of the labels have been removed for brevity)
 NAME         STATUS    AGE       VERSION   LABELS
 k8s-0        Ready     1d        v1.7.0    cassandra-data-cassandra-1=true
 k8s-1        Ready     1d        v1.7.0    cassandra-data-cassandra-1=true,cassandra-data-cassandra-2=true
@@ -261,4 +263,3 @@ For further reading on Cassandra:
 * [Cassandra Docker](https://portworx.com/use-case/cassandra-docker-container/) How to run Cassandra in Docker containers
 * [Run multiple Cassandra rings on the same hosts](https://portworx.com/run-multiple-cassandra-clusters-hosts/)
 * [Cassandra stress test with Portworx](https://docs.portworx.com/applications/cassandra-px-perf-test.html)
-
