@@ -276,13 +276,13 @@ Volume  :  651254593135168442
 
 ```
 
-##Scaling
+## Scaling
  WIP
 
-##Failovers
-# Pod Failover
+## Failovers
+### Pod Failover
 WIP
-# Node Failover
+### Node Failover
 WIP 
 
 ## See Also
