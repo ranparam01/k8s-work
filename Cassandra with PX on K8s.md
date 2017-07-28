@@ -57,8 +57,7 @@ Apply the configuration
 ```$ kubectl apply -f px-storageclass.yml```
 
 Create the Statefulset for Cassandra with 3 replicas. 
-The PodSpec in the statefulset specifies the container image of Cassandra. The property of Statefulsets is that it provides a sticky and a unique identity to the pods. So If in case your pod stop and is scheduled again, it is safe to assume it would 
-
+The PodSpec in the statefulset specifies the container image of Cassandra. Statefulsets ensures a sticky and unique identity to the pods. The ordinal index ensures this identity to the Pods.  
 
 Create a ```cassandra-statefulset.yml``` with the following content
 ```
@@ -159,7 +158,7 @@ Apply the configuration
 
 ## Post Install status
 
-Verify that the PVC is bound. 
+Verify that the PVC is bound to a volume using the storage class. 
 
 ```$ kubectl get pvc```
 ```
@@ -168,6 +167,22 @@ Verify that the PVC is bound.
  cassandra-data-cassandra-1   Bound     pvc-49e8caf6-735d-11e7-9d23-42010a8e0002   1Gi        RWO           portworx-sc    2m
  cassandra-data-cassandra-2   Bound     pvc-603d4f95-735d-11e7-9d23-42010a8e0002   1Gi        RWO           portworx-sc    1m
 ```
+
+Verify that the cassandra cluster is created 
+
+```kubectl exec cassandra-0 -- nodetool status```
+
+```
+Datacenter: DC1-K8Demo
+======================
+Status=Up/Down
+|/ State=Normal/Leaving/Joining/Moving
+--  Address     Load       Tokens       Owns (effective)  Host ID                               Rack
+UN  10.0.160.2  164.39 KiB  32           62.3%             ce3b48b8-1655-48a2-b167-08d03ca6bc41  Rack1-K8Demo
+UN  10.0.64.2   190.76 KiB  32           64.1%             ba31128d-49fa-4696-865e-656d4d45238e  Rack1-K8Demo
+UN  10.0.192.3  104.55 KiB  32           73.6%             c778d78d-c6bc-4768-a3ec-0d51ba066dcb  Rack1-K8Demo
+```
+
 Verify that the storageclass is created. 
 
 ```$ kubectl get storageclass```
@@ -193,7 +208,7 @@ ID                      NAME                                            SIZE    
 ```
 
 ## Hyperconvergence
-Portworx places the volumes for the cassandra pod locally on the node where the statefulsets get deployed. This can be verified as below. 
+Running your Cassandra pods on the same host as its data container(portworx volume) provides the most optimum performance. This is called hyperconvergence and it is supported by Portworx. When each Cassandra pod is first launched, they create the required PX volumes via a PVC or a PV. These volumes are created with data local to the node where they are first launched. Portworx places the volumes for the cassandra pod locally on the node where the statefulsets get deployed. This can be verified as below. 
 
 Get the pods and the knowledge of the Hosts on which they are scheduled. 
 
@@ -260,6 +275,16 @@ Volume  :  651254593135168442
                         Node     :  10.142.0.3
 
 ```
+
+##Scaling
+ WIP
+
+##Failovers
+# Pod Failover
+WIP
+# Node Failover
+WIP 
+
 ## See Also
 For further reading on Cassandra:
 * [Cassandra Docker](https://portworx.com/use-case/cassandra-docker-container/) How to run Cassandra in Docker containers
