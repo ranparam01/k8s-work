@@ -160,6 +160,7 @@ Apply the configuration
 ## Post Install status
 
 Verify that the PVC is bound. 
+
 ```$ kubectl get pvc```
 ```
  NAME                         STATUS    VOLUME                                     CAPACITY   ACCESSMODES   STORAGECLASS   AGE
@@ -168,6 +169,7 @@ Verify that the PVC is bound.
  cassandra-data-cassandra-2   Bound     pvc-603d4f95-735d-11e7-9d23-42010a8e0002   1Gi        RWO           portworx-sc    1m
 ```
 Verify that the storageclass is created. 
+
 ```$ kubectl get storageclass```
 ```
 NAME                 TYPE
@@ -219,6 +221,7 @@ Portworx applies labels to the node objects where it places the volumes. so in t
 
 ```
 $ kubectl get nodes --show-labels (Some of the labels have been removed for brevity)
+
 NAME         STATUS    AGE       VERSION   LABELS
 k8s-0        Ready     1d        v1.7.0    cassandra-data-cassandra-1=true
 k8s-1        Ready     1d        v1.7.0    cassandra-data-cassandra-1=true,cassandra-data-cassandra-2=true
@@ -228,10 +231,9 @@ k8s-master   Ready     1d        v1.7.0    cassandra-data-cassandra-0=true
 
 Verify that the portworx volume is hyperconverged with the cassandra pod
 
-```/opt/pwx/bin/pxctl v i 651254593135168442``` (This volume is up and attached to k8s-0)
+```$ /opt/pwx/bin/pxctl v i 651254593135168442``` (This volume is up and attached to k8s-0)
 
 ```
-root@k8s-master:/home/hrishikesh# /opt/pwx/bin/pxctl v i 651254593135168442
 Volume  :  651254593135168442
         Name                     :  pvc-49e8caf6-735d-11e7-9d23-42010a8e0002
         Size                     :  1.0 GiB
