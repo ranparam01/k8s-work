@@ -47,9 +47,8 @@ metadata:
   name: px-storageclass
 provisioner: kubernetes.io/portworx-volume
 parameters:
-  repl: "1"
-  snap_interval: "70"
-  io_priority: "high"
+  repl: "2"
+  priority_io: "high"
 
 ```
 Apply the configuration
@@ -67,7 +66,7 @@ metadata:
   name: cassandra
 spec:
   serviceName: cassandra
-  replicas: 3
+  replicas: 2
   template:
     metadata:
       labels:
@@ -75,7 +74,7 @@ spec:
     spec:
       containers:
       - name: cassandra
-        image: gcr.io/google-samples/cassandra:v12
+        image: gcr.io/google-samples/cassandra:v11
         imagePullPolicy: Always
         ports:
         - containerPort: 7000
@@ -205,75 +204,6 @@ ID                      NAME                                            SIZE    
 651254593135168442      pvc-49e8caf6-735d-11e7-9d23-42010a8e0002        1 GiB   2       no      no              LOW             0       up - attached on 10.142.0.3
 136016794033281980      pvc-603d4f95-735d-11e7-9d23-42010a8e0002        1 GiB   2       no      no              LOW             0       up - attached on 10.142.0.4
 752567898197695962      pvc-e6924b73-72f9-11e7-9d23-42010a8e0002        1 GiB   2       no      no              LOW             0       up - attached on 10.142.0.5
-```
-
-## Hyperconvergence
-Running your Cassandra pods on the same host as its data container(portworx volume) provides the most optimum performance. This is called hyperconvergence and it is supported by Portworx. When each Cassandra pod is first launched, they create the required PX volumes via a PVC or a PV. These volumes are created with data local to the node where they are first launched. Portworx places the volumes for the cassandra pod locally on the node where the statefulsets get deployed. This can be verified as below. 
-
-Get the pods and the knowledge of the Hosts on which they are scheduled. 
-
-```$ kubectl get pods -l app=cassandra -o json | jq '.items[] | {"name": .metadata.name,"hostname": .spec.nodeName, "hostIP": .status.hostIP, "PodIP": .status.podIP}'```
-```
-{
-  "name": "cassandra-0", 
-  "hostname": "k8s-2", 
-  "hostIP": "10.142.0.5",
-  "PodIP": "10.0.160.2"
-}  
-{
-  "name": "cassandra-1",
-  "hostname": "k8s-0",
-  "hostIP": "10.142.0.3",
-  "PodIP": "10.0.64.2"
-}  
-{
-  "name": "cassandra-2",
-  "hostname": "k8s-1",
-  "hostIP": "10.142.0.4",
-  "PodIP": "10.0.192.3"                                                                                                                                            }
-```
-Portworx applies labels to the node objects where it places the volumes. so in this case ```k8s-0``` node which runs ```cassandra-1``` pod has the label applied to it as ```cassandra-data-cassandra-1=true```. Check output of the command below. 
-
-```
-$ kubectl get nodes --show-labels (Some of the labels have been removed for brevity)
-
-NAME         STATUS    AGE       VERSION   LABELS
-k8s-0        Ready     1d        v1.7.0    cassandra-data-cassandra-1=true
-k8s-1        Ready     1d        v1.7.0    cassandra-data-cassandra-1=true,cassandra-data-cassandra-2=true
-k8s-2        Ready     1d        v1.7.0    cassandra-data-cassandra-0=true,cassandra-data-cassandra-2=true
-k8s-master   Ready     1d        v1.7.0    cassandra-data-cassandra-0=true
-```
-
-Verify that the portworx volume is hyperconverged with the cassandra pod
-
-```$ /opt/pwx/bin/pxctl v i 651254593135168442``` (This volume is up and attached to k8s-0)
-
-```
-Volume  :  651254593135168442
-        Name                     :  pvc-49e8caf6-735d-11e7-9d23-42010a8e0002
-        Size                     :  1.0 GiB
-        Format                   :  ext4
-        HA                       :  2
-        IO Priority              :  LOW
-        Creation time            :  Jul 28 06:23:36 UTC 2017
-        Shared                   :  no
-        Status                   :  up
-        State                    :  Attached: k8s-0
-        Device Path              :  /dev/pxd/pxd651254593135168442
-        Labels                   :  pvc=cassandra-data-cassandra-1
-        Reads                    :  37
-        Reads MS                 :  72
-        Bytes Read               :  372736
-        Writes                   :  1816
-        Writes MS                :  17648
-        Bytes Written            :  38424576
-        IOs in progress          :  0
-        Bytes used               :  33 MiB
-        Replica sets on nodes:
-                Set  0
-                        Node     :  10.142.0.4
-                        Node     :  10.142.0.3
-
 ```
 
 ## Scaling
