@@ -274,13 +274,116 @@ Volume  :  651254593135168442
 ```
 
 ## Scaling
- WIP
+Portworx runs as a Daemon set within Kubernetes. Hence when you add a node or a worker to your kuberentes cluster you do not need to run Portworx on it. 
+
+You would however require to scale your Cassandra cluster which is deployed as a Statefulset. In order for you to scale your Cassandra statefulset. If you do use the [Terraform scripts](https://github.com/portworx/terraporx) to create a Portworx cluster make sure you update the minion count to scale up your kubernetes cluster. 
+
+Observe the Portworx cluster once you add a new node. 
+Execute the command 
+
+```
+$ kubectl get ds -n kube-system
+
+NAME         DESIRED   CURRENT   READY     UP-TO-DATE   AVAILABLE   NODE-SELECTOR   AGE
+kube-proxy   6         6         6         6            6           <none>          5h
+portworx     6         5         5         5            5           <none>          4h
+weave-net    6         6         6         6            6           <none>          5h
+```
+
+```
+$ kubectl get pods -n kube-system
+
+NAME                                 READY     STATUS    RESTARTS   AGE
+etcd-k8s-master                      1/1       Running   0          5h
+kube-apiserver-k8s-master            1/1       Running   0          5h
+kube-controller-manager-k8s-master   1/1       Running   0          5h
+kube-dns-2425271678-p8620            3/3       Running   0          5h
+kube-proxy-3t2c9                     1/1       Running   0          5h
+kube-proxy-94j40                     1/1       Running   0          5h
+kube-proxy-h75gd                     1/1       Running   0          5h
+kube-proxy-nvl7m                     1/1       Running   0          5h
+kube-proxy-xh3gr                     1/1       Running   0          2m
+kube-proxy-zlxmn                     1/1       Running   0          4h
+kube-scheduler-k8s-master            1/1       Running   0          5h
+portworx-14g3z                       1/1       Running   0          4h
+portworx-ggzvz                       0/1       Running   0          2m
+portworx-hhg0m                       1/1       Running   0          4h
+portworx-rkdp6                       1/1       Running   0          4h
+portworx-stvlt                       1/1       Running   0          4h
+portworx-vxqxh                       1/1       Running   0          4h
+weave-net-0cdb7                      2/2       Running   1          5h
+weave-net-2d6hb                      2/2       Running   0          5h
+weave-net-95l8z                      2/2       Running   0          5h
+weave-net-tlvkz                      2/2       Running   1          4h
+weave-net-tmbxh                      2/2       Running   0          2m
+weave-net-w4xgw                      2/2       Running   0          5h
+
+```
+
+The portworx cluster automatically scales as you scale your kubernetes cluster. 
+
+```
+$ /opt/pwx/bin/pxctl status
+
+Status: PX is operational
+License: Trial (expires in 30 days)
+Node ID: k8s-master
+        IP: 10.140.0.2
+        Local Storage Pool: 1 pool
+        POOL    IO_PRIORITY     RAID_LEVEL      USABLE  USED    STATUS  ZONE    REGION
+        0       MEDIUM          raid0           10 GiB  471 MiB Online  default default
+        Local Storage Devices: 1 device
+        Device  Path            Media Type              Size            Last-Scan
+        0:1     /dev/sdb        STORAGE_MEDIUM_SSD      10 GiB          31 Jul 17 12:59 UTC
+        total                   -                       10 GiB
+Cluster Summary
+        Cluster ID: px-cluster
+        Cluster UUID: d2ebd5cf-9652-47d7-ac95-d4ccbd416a6a
+        IP              ID              Used    Capacity        Status
+        10.140.0.7      k8s-4           266 MiB 10 GiB          Online
+        10.140.0.2      k8s-master      471 MiB 10 GiB          Online (This node)
+        10.140.0.4      k8s-2           471 MiB 10 GiB          Online
+        10.140.0.3      k8s-0           461 MiB 10 GiB          Online
+        10.140.0.5      k8s-1           369 MiB 10 GiB          Online
+        10.140.0.6      k8s-3           369 MiB 10 GiB          Online
+Global Storage Pool
+        Total Used      :  2.3 GiB
+        Total Capacity  :  60 GiB
+
+```
+
+Scale your cassandra statefulset
+
+```
+kubectl get sts cassandra
+
+NAME        DESIRED   CURRENT   AGE
+cassandra   4         4         4h
+```
+
+```
+kubectl scale sts cassandra --replicas=5
+
+statefulset "cassandra" scaled
+```
+
+```
+kubectl get pods -l "app=cassandra" -w
+
+NAME          READY     STATUS    RESTARTS   AGE
+cassandra-0   1/1       Running   0          5h
+cassandra-1   1/1       Running   0          4h
+cassandra-2   1/1       Running   0          4h
+cassandra-3   1/1       Running   0          3h
+cassandra-4   1/1       Running   0          57s
+```
+
 
 ## Failovers
 ### Pod Failover
-WIP
+  WIP
 ### Node Failover
-WIP 
+  WIP 
 
 ## See Also
 For further reading on Cassandra:
