@@ -378,10 +378,173 @@ cassandra-3   1/1       Running   0          3h
 cassandra-4   1/1       Running   0          57s
 ```
 
+```
+kubectl exec -it cassandra-0 -- nodetool status
 
-## Failovers
+Datacenter: DC1-K8Demo
+======================
+Status=Up/Down
+|/ State=Normal/Leaving/Joining/Moving
+--  Address     Load       Tokens       Owns (effective)  Host ID                               Rack
+UN  10.0.128.1  84.75 KiB   32           41.4%             1c14f7dc-44f7-4174-b43a-308370c9139e  Rack1-K8Demo
+UN  10.0.240.1  130.81 KiB  32           45.2%             60ebbe70-f7bc-48b0-9374-710752e8876d  Rack1-K8Demo
+UN  10.0.192.2  156.84 KiB  32           41.1%             915f33ff-d105-4501-997f-7d44fb007911  Rack1-K8Demo
+UN  10.0.160.2  125.1 KiB   32           45.3%             a56a6f70-d2e3-449a-8a33-08b8efb25000  Rack1-K8Demo
+UN  10.0.64.3   159.94 KiB  32           26.9%             ae7e3624-175b-4676-9ac3-6e3ad4edd461  Rack1-K8Demo
+```
+
+## Failover
+
 ### Pod Failover
-  WIP
+
+Verify that there is a 5 node Cassandra cluster running on your kubernetes cluster. 
+```
+$ kubectl get pods -l "app=cassandra"
+
+NAME          READY     STATUS    RESTARTS   AGE
+cassandra-0   1/1       Running   0          1h
+cassandra-1   1/1       Running   0          10m
+cassandra-2   1/1       Running   0          18h
+cassandra-3   1/1       Running   0          17h
+cassandra-4   1/1       Running   0          13h
+```
+
+Create data in your Cassandra DB
+
+```$ kubectl exec -it cassandra-2 -- bash
+
+root@cassandra-2:/# cqlsh
+
+Connected to K8Demo at 127.0.0.1:9042.
+[cqlsh 5.0.1 | Cassandra 3.9 | CQL spec 3.4.2 | Native protocol v4]
+Use HELP for help.
+
+cqlsh> CREATE KEYSPACE demodb WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 2 };
+
+cqlsh> use demodb;
+
+cqlsh:demodb> CREATE TABLE emp(emp_id int PRIMARY KEY, emp_name text, emp_city text, emp_sal varint,emp_phone varint);
+
+cqlsh:demodb> INSERT INTO emp (emp_id, emp_name, emp_city, emp_phone, emp_sal) VALUES(123423445,'Steve', 'Denver', 5910234452, 50000);
+```
+
+Let us look at which nodes host the data in your cassandra ring based on its partition key
+
+```
+root@cassandra-2:/# nodetool getendpoints demodb emp 123423445
+
+10.0.112.1
+10.0.160.1
+```
+
+Cross reference the above PodIPs to the nodes (Node k8s-0 is the one which hosts one of the pods)
+
+```
+$ kubectl get pods -l app=cassandra -o json | jq '.items[] | {"name": .metadata.name,"hostname": .spec.nodeName, "hostIP": .status.hostIP, "PodIP": .status.podIP}'
+
+{
+  "name": "cassandra-0",
+  "hostname": "k8s-5",
+  "hostIP": "10.140.0.8",
+  "PodIP": "10.0.112.1"
+}
+{
+  "name": "cassandra-1",
+  "hostname": "k8s-0",
+  "hostIP": "10.140.0.3",
+  "PodIP": "10.0.160.1"
+}
+{
+  "name": "cassandra-2",
+  "hostname": "k8s-1",
+  "hostIP": "10.140.0.5",
+  "PodIP": "10.0.64.3"
+}
+{
+  "name": "cassandra-3",
+  "hostname": "k8s-3",
+  "hostIP": "10.140.0.6",
+  "PodIP": "10.0.240.1"
+}
+{
+  "name": "cassandra-4",
+  "hostname": "k8s-4",
+  "hostIP": "10.140.0.7",
+  "PodIP": "10.0.128.1"
+}
+```
+
+Cordon the node where one of the replicas of the dataset resides. This will force scheduling of the pod to another node. 
+
+```
+$ kubectl cordon k8s-0
+
+node "k8s-0" cordoned
+```
+
+```
+$ kubectl delete pods cassandra-1
+
+pod "cassandra-1" deleted
+```
+
+The statefulset schedules a new cassandra pod on another host. (The pod gets scheduled on the node k8s-2 this time.)
+
+```
+$ kubectl get pods -w
+NAME          READY     STATUS              RESTARTS   AGE
+cassandra-0   1/1       Running             0          1h
+cassandra-1   0/1       ContainerCreating   0          1s
+cassandra-2   1/1       Running             0          19h
+cassandra-3   1/1       Running             0          17h
+cassandra-4   1/1       Running             0          14h
+cassandra-1   0/1       Running   0         4s
+cassandra-1   1/1       Running   0         28s
+
+$ kubectl get pods -l app=cassandra -o json | jq '.items[] | {"name": .metadata.name,"hostname": .spec.nodeName, "hostIP": .status.hostIP, "PodIP": tatus.podIP}'
+{
+  "name": "cassandra-0",
+  "hostname": "k8s-5",
+  "hostIP": "10.140.0.8",
+  "PodIP": "10.0.112.1"
+}
+{
+  "name": "cassandra-1",
+  "hostname": "k8s-2",
+  "hostIP": "10.140.0.4",
+  "PodIP": "10.0.192.2"
+}
+{
+  "name": "cassandra-2",
+  "hostname": "k8s-1",
+  "hostIP": "10.140.0.5",
+  "PodIP": "10.0.64.3"
+}
+{
+  "name": "cassandra-3",
+  "hostname": "k8s-3",
+  "hostIP": "10.140.0.6",
+  "PodIP": "10.0.240.1"
+}
+{
+  "name": "cassandra-4",
+  "hostname": "k8s-4",
+  "hostIP": "10.140.0.7",
+  "PodIP": "10.0.128.1"
+}
+```
+
+Query for the data that was inserted earlier. 
+```
+$ kubectl exec cassandra-1 -- cqlsh -e 'select * from demodb.emp'
+
+ emp_id    | emp_city | emp_name | emp_phone  | emp_sal
+-----------+----------+----------+------------+---------
+ 123423445 |   Denver |    Steve | 5910234452 |   50000
+
+(1 rows)
+```
+
 ### Node Failover
   WIP 
 
