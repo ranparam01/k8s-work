@@ -546,7 +546,108 @@ $ kubectl exec cassandra-1 -- cqlsh -e 'select * from demodb.emp'
 ```
 
 ### Node Failover
-  WIP 
+
+Decomissioning a kubernetes node deletes the node object form the APIServer. 
+Before that you would want to decomission your Portworx node from the cluster. 
+Follow the steps mentioned in [Decommision a Portworx node](https://docs.portworx.com/scheduler/kubernetes/k8s-node-decommission.html) 
+Once done, delete the kubernetes node if it requires to be deleted permanently. 
+
+```$ kubectl delete node k8s-1```
+The kubernetes statefulset would schedule the pod which was running on the node to another node to fulfil the replicas definition.
+
+#### Cluster State Before k8s-1 was deleted:
+-------------------------------------------------------
+```
+$ kubectl get pods -l app=cassandra -o json | jq '.items[] | {"name": .metadata.name,"hostname": .spec.nodeName, "hostIP": .status.hostIP, "PodIP": tatus.podIP}'
+
+{
+  "name": "cassandra-0",
+  "hostname": "k8s-5",
+  "hostIP": "10.140.0.8",
+  "PodIP": "10.0.112.1"
+}
+{
+  "name": "cassandra-1",
+  "hostname": "k8s-2",
+  "hostIP": "10.140.0.4",
+  "PodIP": "10.0.192.2"
+}
+{
+  "name": "cassandra-2",
+  "hostname": "k8s-1",
+  "hostIP": "10.140.0.5",
+  "PodIP": "10.0.64.3"
+}
+{
+  "name": "cassandra-3",
+  "hostname": "k8s-3",
+  "hostIP": "10.140.0.6",
+  "PodIP": "10.0.240.1"
+}
+{
+  "name": "cassandra-4",
+  "hostname": "k8s-4",
+  "hostIP": "10.140.0.7",
+  "PodIP": "10.0.128.1"
+}
+
+$ kubectl get nodes --show-labels (Some of the tags and colums are removed for brevity)
+
+k8s-0        Read          cassandra-data-cassandra-1=true,cassandra-data-cassandra-3=true
+k8s-1        Ready         cassandra-data-cassandra-1=true,cassandra-data-cassandra-4=true
+k8s-2        Ready         cassandra-data-cassandra-0=true,cassandra-data-cassandra-2=true
+k8s-3        Ready         cassandra-data-cassandra-3=true
+k8s-4        Ready         cassandra-data-cassandra-4=true
+k8s-5        Ready         
+k8s-master   Ready         cassandra-data-cassandra-0=true,cassandra-data-cassandra-2=true
+```
+
+#### Cluster State After k8s-1 was deleted:
+-------------------------------------------------------
+
+```
+$ kubectl get pods -l app=cassandra -o json | jq '.items[] | {"name": .metadata.name,"hostname": .spec.nodeName, "hostIP": .status.hostIP, "PodIP": .status.podIP}'
+
+{
+  "name": "cassandra-0",
+  "hostname": "k8s-5",
+  "hostIP": "10.140.0.8",
+  "PodIP": "10.0.112.1"
+}
+{
+  "name": "cassandra-1",
+  "hostname": "k8s-2",
+  "hostIP": "10.140.0.4",
+  "PodIP": "10.0.192.2"
+}
+{
+  "name": "cassandra-2",
+  "hostname": "k8s-0",
+  "hostIP": "10.140.0.3",
+  "PodIP": "10.0.160.2"
+}
+{
+  "name": "cassandra-3",
+  "hostname": "k8s-3",
+  "hostIP": "10.140.0.6",
+  "PodIP": "10.0.240.1"
+}
+{
+  "name": "cassandra-4",
+  "hostname": "k8s-4",
+  "hostIP": "10.140.0.7",
+  "PodIP": "10.0.128.1"
+}
+
+$ kubectl get nodes --show-labels (Some of the tags and colums are removed for brevity)
+
+k8s-0        Ready         cassandra-data-cassandra-1=true,cassandra-data-cassandra-3=true
+k8s-2        Ready         cassandra-data-cassandra-0=true,cassandra-data-cassandra-2=true
+k8s-3        Ready         cassandra-data-cassandra-3=true
+k8s-4        Ready         cassandra-data-cassandra-4=true
+k8s-5        Ready               
+k8s-master   Ready         cassandra-data-cassandra-0=true,cassandra-data-cassandra-2=true
+``` 
 
 ## See Also
 For further reading on Cassandra:
