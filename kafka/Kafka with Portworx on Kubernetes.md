@@ -23,24 +23,23 @@ We would use Portworx to provide volume(s) to Zookeeper as well as Kafka.
 Create ```portworx-sc.yml``` with Portworx as the provisioner and apply the configuration
 
 ```
-
-	kind: StorageClass
-	apiVersion: storage.k8s.io/v1
-	metadata:
-	  name: portworx-sc
-	provisioner: kubernetes.io/portworx-volume
-	parameters:
-	  repl: "1"
-	  priority_io: "high"
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: portworx-sc
+provisioner: kubernetes.io/portworx-volume
+parameters:
+  repl: "1"
+  priority_io: "high"
 ---
-	kind: StorageClass
-	apiVersion: storage.k8s.io/v1
-	metadata:
-	  name: portworx-sc-rep2
-	provisioner: kubernetes.io/portworx-volume
-	parameters:
-	  repl: "2"
-	  priority_io: "high"
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: portworx-sc-rep2
+provisioner: kubernetes.io/portworx-volume
+parameters:
+  repl: "2"
+  priority_io: "high"
 ---
 
 kubectl apply -f portworx-sc.yml
@@ -565,5 +564,54 @@ Volume  :  262949240358217536
 
 ```
 
+Find the Kafka brokers 
+```
+for i in 0 1 2; do kubectl exec -n kafka kafka-$i -- hostname -f; done
+kafka-0.broker.kafka.svc.cluster.local
+kafka-1.broker.kafka.svc.cluster.local
+kafka-2.broker.kafka.svc.cluster.local
+```
+
+Create a topic with 3 partitions and which has a replication factor of 3
+
+```
+kubectl exec -n kafka -it kafka-0 -- bash 
+
+./bin/kafka-topics.sh --zookeeper zk-headless.default.svc.cluster.local:2181 --create --if-not-exists --topic px-kafka-topic --partitions 3 --replication-factor 3
+Created topic "px-kafka-topic".
+
+bin/kafka-topics.sh --list --zookeeper zk-headless.default.svc.cluster.local:2181
+px-kafka-topic
+
+bin/kafka-topics.sh --describe --zookeeper zk-headless.default.svc.cluster.local:2181 --topic px-kafka-topic
+Topic:px-kafka-topic    PartitionCount:3        ReplicationFactor:3     Configs:
+Topic: px-kafka-topic   Partition: 0    Leader: 0       Replicas: 0,1,2 Isr: 0,1,2
+Topic: px-kafka-topic   Partition: 1    Leader: 1       Replicas: 1,2,0 Isr: 1,2,0
+Topic: px-kafka-topic   Partition: 2    Leader: 2       Replicas: 2,0,1 Isr: 2,0,1
+
+```
+
+Publish messages on the topic
+```
+bin/kafka-console-producer.sh --broker-list kafka-0.broker.kafka.svc.cluster.local:9092,kafka-1.broker.kafka.svc.cluster.local:9092,kafka-2.broker.kafka.svc.cluster.local:9092 --topic px-kafka-topic
+>Hello Kubernetes!
+>This is Portworx saying hello            
+>Kafka says, I am just a messenger 
+
+```
+
+Consume messages from the topic
+```
+bin/kafka-console-consumer.sh --zookeeper zk-headless.default.svc.cluster.local:2181 —topic px-kafka-topic --from-beginning
+This is Portworx saying hello
+Hello Kubernetes!
+Kafka says, I am just a messenger
+```
+
+## Scaling
 
 
+##Failover
+### Node Failover
+
+### Pod Failover
