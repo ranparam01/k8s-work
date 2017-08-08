@@ -577,7 +577,7 @@ Create a topic with 3 partitions and which has a replication factor of 3
 ```
 kubectl exec -n kafka -it kafka-0 -- bash 
 
-./bin/kafka-topics.sh --zookeeper zk-headless.default.svc.cluster.local:2181 --create --if-not-exists --topic px-kafka-topic --partitions 3 --replication-factor 3
+bin/kafka-topics.sh --zookeeper zk-headless.default.svc.cluster.local:2181 --create --if-not-exists --topic px-kafka-topic --partitions 3 --replication-factor 3
 Created topic "px-kafka-topic".
 
 bin/kafka-topics.sh --list --zookeeper zk-headless.default.svc.cluster.local:2181
@@ -610,8 +610,60 @@ Kafka says, I am just a messenger
 
 ## Scaling
 
+Scale the Kafka cluster. 
 
-##Failover
+```
+kubectl scale -n kafka sts kafka --replicas=4
+statefulset "kafka" scaled
+
+kubectl get pods -n kafka -l "app=kafka" -w
+NAME      READY     STATUS            RESTARTS   AGE
+kafka-0   1/1       Running           0          3h
+kafka-1   1/1       Running           0          3h
+kafka-2   1/1       Running           0          3h
+kafka-3   0/1       PodInitializing   0          24s
+kafka-3   0/1       Running           0          32s
+kafka-3   1/1       Running           0          34s
+
+kubectl get pvc -n kafka
+NAME           STATUS    VOLUME                                     CAPACITY   ACCESSMODES   STORAGECLASS       AGE
+data-kafka-0   Bound     pvc-c405b033-7c4b-11e7-a940-42010a8c0002   3Gi        RWO           portworx-sc-rep2   3h
+data-kafka-1   Bound     pvc-cc70447a-7c4b-11e7-a940-42010a8c0002   3Gi        RWO           portworx-sc-rep2   3h
+data-kafka-2   Bound     pvc-d2388861-7c4b-11e7-a940-42010a8c0002   3Gi        RWO           portworx-sc-rep2   3h
+data-kafka-3   Bound     pvc-df82a9b0-7c68-11e7-a940-42010a8c0002   3Gi        RWO           portworx-sc-rep2   6m
+
+```
+
+Verify that the newly created kafka broker is part of the cluster. 
+
+```
+kubectl exec -n kafka -it kafka-0 -- bash
+
+>zkCli.sh
+
+[zk: localhost:2181(CONNECTED) 0] ls /brokers/ids
+[0, 1, 2, 3]
+
+[zk: localhost:2181(CONNECTED) 1] ls /brokers/topics
+[px-kafka-topic]
+
+[zk: localhost:2181(CONNECTED) 2] get /brokers/ids/3
+{"listener_security_protocol_map":{"PLAINTEXT":"PLAINTEXT"},"endpoints":["PLAINTEXT://kafka-3.broker.kafka.svc.cluster.local:9092"],"jmx_port":-1,"host":"kafka-3.broker.kafka.svc.cluster.local","timestamp":"1502217586002","port":9092,"version":4}
+cZxid = 0x1000000e9
+ctime = Tue Aug 08 18:39:46 UTC 2017
+mZxid = 0x1000000e9
+mtime = Tue Aug 08 18:39:46 UTC 2017
+pZxid = 0x1000000e9
+cversion = 0
+dataVersion = 0
+aclVersion = 0
+ephemeralOwner = 0x25dbd0e499e000b
+dataLength = 246
+numChildren = 0
+
+```
+
+## Failover
 ### Node Failover
 
 ### Pod Failover
