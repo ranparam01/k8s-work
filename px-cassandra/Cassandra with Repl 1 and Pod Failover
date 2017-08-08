@@ -1,0 +1,222 @@
+Important : Create data with replication factor 1 only to demonstrate pod failovers. 
+
+```kubectl exec -it cassandra-0 -- bash
+
+cqlsh> CREATE KEYSPACE demodb WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
+
+cqlsh> CREATE TABLE emp(
+   ...    emp_id int PRIMARY KEY,
+   ...    emp_name text,
+   ...    emp_city text,
+   ...    emp_sal varint,
+   ...    emp_phone varint
+   ...    );
+
+cqlsh> use demodb;
+
+cqlsh:demodb> CREATE TABLE emp(
+          ...    emp_id int PRIMARY KEY,
+          ...    emp_name text,
+          ...    emp_city text,
+          ...    emp_sal varint,
+          ...    emp_phone varint
+          ...    );
+
+cqlsh:demodb> INSERT INTO emp (emp_id, emp_name, emp_city, emp_phone, emp_sal) VALUES(123423445,'Steve', 'Denver', 5910234452, 50000);
+
+cqlsh:demodb> exit
+```
+
+Lookup for the data and the node that is serving it.
+
+```$ kubectl exec cassandra-0 -- nodetool getendpoints demodb emp 123423445
+
+10.0.192.2
+```
+Nodes which participate in the Cassandra ring 
+
+```$ kubectl get pods -l app=cassandra -o json | jq '.items[] | {"name": .metadata.name,"hostname": .spec.nodeName, "hostIP": .status.hostIP, "PodIP": .status.podIP}'
+
+{
+  "name": "cassandra-0",
+  "hostname": "k8s-2",
+  "hostIP": "10.140.0.4",
+  "PodIP": "10.0.192.2"
+}
+{
+  "name": "cassandra-1",
+  "hostname": "k8s-0",
+  "hostIP": "10.140.0.3",
+  "PodIP": "10.0.160.2"
+}
+{
+  "name": "cassandra-2",
+  "hostname": "k8s-1",
+  "hostIP": "10.140.0.5",
+  "PodIP": "10.0.64.3"
+}
+{
+  "name": "cassandra-3",
+  "hostname": "k8s-3",
+  "hostIP": "10.140.0.6",
+  "PodIP": "10.0.240.1"
+}
+{
+  "name": "cassandra-4",
+  "hostname": "k8s-4",
+  "hostIP": "10.140.0.7",
+  "PodIP": "10.0.128.1"
+}
+```
+
+Cordon the node to simulate a failover to another node. 
+
+```$ kubectl cordon k8s-2
+
+node "k8s-2" cordoned
+```
+
+Verify that the node is disabled for scheduling. 
+
+```$ kubectl get nodes
+
+NAME         STATUS                     AGE       VERSION
+k8s-0        Ready                      17h       v1.7.0
+k8s-1        Ready                      17h       v1.7.0
+k8s-2        Ready,SchedulingDisabled   17h       v1.7.0
+k8s-3        Ready                      16h       v1.7.0
+k8s-4        Ready                      12h       v1.7.0
+k8s-5        Ready                      2m        v1.7.0
+k8s-master   Ready                      17h       v1.7.0
+```
+
+Gracefully Delete the pod which was serving the data created earlier. 
+
+```$ kubectl delete pods cassandra-0
+
+pod "cassandra-0" deleted
+```
+
+The statefulset reschedules the pod. 
+
+```
+$ kubectl get pods -l "app=cassandra"
+
+NAME          READY     STATUS    RESTARTS   AGE
+cassandra-0   0/1       Pending   0          3s
+cassandra-1   0/1       Running   1          17h
+cassandra-2   1/1       Running   0          17h
+cassandra-3   1/1       Running   0          16h
+cassandra-4   1/1       Running   0          12h
+
+$ kubectl get pods -l "app=cassandra"
+
+NAME          READY     STATUS              RESTARTS   AGE
+cassandra-0   0/1       Running             0          12m
+cassandra-1   0/1       Running             1          17h
+cassandra-2   1/1       Running             0          17h
+cassandra-3   1/1       Running             0          16h
+cassandra-4   1/1       Running             0          12h
+```
+
+```
+$ kubectl describe po/cassandra-0
+
+Name:           cassandra-0
+Namespace:      default
+Node:           k8s-5/10.140.0.8
+Start Time:     Tue, 01 Aug 2017 06:21:48 +0000
+Labels:         app=cassandra
+                controller-revision-hash=cassandra-2308623084
+Annotations:    kubernetes.io/created-by={"kind":"SerializedReference","apiVersion":"v1","reference":{"kind":"StatefulSet","namespace":"default","name":"cassandra","uid":"8a14a9df-75f0-11e7-9b1e-42010a8c0002","apiVer...
+Status:         Running
+IP:             10.0.112.1
+Created By:     StatefulSet/cassandra
+Controlled By:  StatefulSet/cassandra
+Containers:
+  cassandra:
+    Container ID:       docker://c870bc5ebdc7982e9bcab950e99df32e681b5e194c9a2860b4eae555f90e704f
+    Image:              gcr.io/google-samples/cassandra:v11
+    Image ID:           docker-pullable://gcr.io/google-samples/cassandra@sha256:7eed23532e59f9ea03260d161f7554df1f8cc2aae80bfe9e6e027aa1aeb264d0
+    Ports:              7000/TCP, 7001/TCP, 7199/TCP, 9042/TCP
+    State:              Running
+      Started:          Tue, 01 Aug 2017 06:26:17 +0000
+    Ready:              False
+    Restart Count:      0
+    Limits:
+      cpu:      500m
+      memory:   1Gi
+    Requests:
+      cpu:      500m
+      memory:   1Gi
+    Readiness:  exec [/bin/bash -c /ready-probe.sh] delay=15s timeout=5s period=10s #success=1 #failure=3
+    Environment:
+      MAX_HEAP_SIZE:            512M
+      HEAP_NEWSIZE:             100M
+      CASSANDRA_SEEDS:          cassandra-0.cassandra.default.svc.cluster.local
+      CASSANDRA_CLUSTER_NAME:   K8Demo
+      CASSANDRA_DC:             DC1-K8Demo
+      CASSANDRA_RACK:           Rack1-K8Demo
+      CASSANDRA_AUTO_BOOTSTRAP: false
+      POD_IP:                    (v1:status.podIP)
+      POD_NAMESPACE:            default (v1:metadata.namespace)
+    Mounts:
+      /cassandra_data from cassandra-data (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-0n811 (ro)
+Conditions:
+  Type          Status
+  Initialized   True
+  Ready         False
+  PodScheduled  True  
+```
+
+```
+$ kubectl exec cassandra-2 -- nodetool getendpoints demodb emp 123423445
+
+10.0.112.1
+```
+
+```
+$ kubectl get pods -l app=cassandra -o json | jq '.items[] | {"name": .metadata.name,"hostname": .spec.nodeName, "hostIP": .status.hostIP, "PodIP": .status.podIP}'
+
+{
+  "name": "cassandra-0",
+  "hostname": "k8s-5",
+  "hostIP": "10.140.0.8",
+  "PodIP": "10.0.112.1"
+}
+{
+  "name": "cassandra-1",
+  "hostname": "k8s-0",
+  "hostIP": "10.140.0.3",
+  "PodIP": "10.0.160.2"
+}
+{
+  "name": "cassandra-2",
+  "hostname": "k8s-1",
+  "hostIP": "10.140.0.5",
+  "PodIP": "10.0.64.3"
+}
+{
+  "name": "cassandra-3",
+  "hostname": "k8s-3",
+  "hostIP": "10.140.0.6",
+  "PodIP": "10.0.240.1"
+}
+{
+  "name": "cassandra-4",
+  "hostname": "k8s-4",
+  "hostIP": "10.140.0.7",
+  "PodIP": "10.0.128.1"
+}
+```
+
+```
+$ kubectl exec cassandra-1 -- cqlsh -e 'select * from demodb.emp'
+
+ emp_id    | emp_city | emp_name | emp_phone  | emp_sal
+-----------+----------+----------+------------+---------
+ 123423445 |   Denver |    Steve | 5910234452 |   50000
+
+(1 rows)
+```
