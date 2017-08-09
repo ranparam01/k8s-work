@@ -664,6 +664,42 @@ numChildren = 0
 ```
 
 ## Failover
-### Node Failover
+### Pod Failover for Zookeeper
 
-### Pod Failover
+Kill the zookeeper process which terminates the pod and get the earlier inserted vale from zookeeper.
+Portworx alongwith the Statefulset provides durable storage to the Zookeeper pods. 
+
+```
+kubectl exec zk-0 -- pkill java
+
+kubectl get pod -w -l "app=zk"
+NAME      READY     STATUS    RESTARTS   AGE
+zk-0      1/1       Running   0          1d
+zk-1      1/1       Running   0          1d
+zk-2      1/1       Running   0          1d
+zk-0      0/1       Error     0          1d
+zk-0      0/1       Running   1          1d
+zk-0      1/1       Running   1          1d
+
+kubectl exec zk-0 -- zkCli.sh get /foo
+
+WATCHER::
+
+WatchedEvent state:SyncConnected type:None path:null
+bar
+cZxid = 0x10000004d
+ctime = Tue Aug 08 14:18:11 UTC 2017
+mZxid = 0x10000004d
+mtime = Tue Aug 08 14:18:11 UTC 2017
+pZxid = 0x10000004d
+cversion = 0
+dataVersion = 0
+aclVersion = 0
+ephemeralOwner = 0x0
+dataLength = 3
+numChildren = 0
+
+
+```
+### Pod Failover for Kafka
+
