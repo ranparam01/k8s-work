@@ -1,0 +1,86 @@
+# RBAC Setup: https://github.com/coreos/etcd-operator/blob/master/doc/user/rbac.md#production-setup
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: etcd-operator
+rules:
+- apiGroups:
+  - etcd.coreos.com
+  resources:
+  - clusters
+  verbs:
+  - "*"
+- apiGroups:
+  - extensions
+  resources:
+  - thirdpartyresources
+  verbs:
+  - "*"
+- apiGroups:
+  - storage.k8s.io
+  resources:
+  - storageclasses
+  verbs:
+  - "*"
+- apiGroups: 
+  - ""
+  resources:
+  - pods
+  - services
+  - endpoints
+  - persistentvolumeclaims
+  - events
+  verbs:
+  - "*"
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - "*"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: etcd-operator
+  namespace: core # I tried with the namespace 'default' too
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: etcd-operator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: etcd-operator
+subjects:
+- kind: ServiceAccount
+  name: etcd-operator
+  namespace: core
+---
+# etcd-operator Deployment: https://github.com/coreos/etcd-operator/blob/master/example/deployment.yaml
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: etcd-operator
+  namespace: core # I added this field, but I tried without it too. Similar logs. 
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: etcd-operator
+    spec:
+      serviceAccountName: etcd-operator
+      containers:
+      - name: etcd-operator
+        image: quay.io/coreos/etcd-operator:v0.4.2
+        env:
+        - name: MY_POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: MY_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
