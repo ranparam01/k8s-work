@@ -1,10 +1,18 @@
+
+Version of PX before. 
 ```
 /opt/pwx/bin/pxctl -v
 pxctl version 1.2.9-48d2568
+```
 
+Version of PX using the vilas/px:1.2.9 image
+```
 /opt/pwx/bin/pxctl -v
 pxctl version 1.2.9-34a0276
+```
 
+5 node ES Cluster
+```
 kubectl get pods -l "component=elasticsearch,role=data" -w
 NAME                   READY     STATUS            RESTARTS   AGE
 elasticsearch-data-0   0/1       PodInitializing   0          12s
@@ -33,8 +41,9 @@ elasticsearch-data-4   0/1       Pending   0         3s
 elasticsearch-data-4   0/1       Init:0/1   0         3s
 elasticsearch-data-4   0/1       PodInitializing   0         5s
 elasticsearch-data-4   1/1       Running   0         10s
+```
 
-
+```
 /opt/pwx/bin/pxctl v l
 ID			NAME						SIZE	HA	SHARED	ENCRYPTED	IO_PRIORITY	SCALE	STATUS
 898306465977508703	pvc-d6cbb981-8a54-11e7-8556-ac1f6b2024cc	80 GiB	2	no	no		LOW		0	up - attached on 70.0.0.87 *
@@ -59,7 +68,6 @@ ip        heap.percent ram.percent cpu load_1m load_5m load_15m node.role master
 ```
 
 Scaling to 50 nodes
-
 ```
 kubectl get pods -l "component=elasticsearch,role=data"
 NAME                    READY     STATUS    RESTARTS   AGE
@@ -227,10 +235,12 @@ px-storage-elasticsearch-data-8    Bound     pvc-9e4a8ce6-8a55-11e7-8556-ac1f6b2
 px-storage-elasticsearch-data-9    Bound     pvc-a61d36fb-8a55-11e7-8556-ac1f6b2024cc   80Gi       RWO           px-data-sc     11m
 ```
 
+Start the Data load
 ```
 python es_test_data.py --es_url=http://10.105.105.41:9200 --count=100000000 --batch-size=500
 ```
 
+PX Cluster State 
 ```
 /opt/pwx/bin/pxctl status
 Status: PX is operational
@@ -259,6 +269,7 @@ Global Storage Pool
 	Total Capacity	:  39 TiB
 ```
 
+ES Cluster 
 ```
 curl 'http://10.105.105.41:9200/_cat/nodes?v'
 ip         heap.percent ram.percent cpu load_1m load_5m load_15m node.role master name
@@ -319,8 +330,8 @@ ip         heap.percent ram.percent cpu load_1m load_5m load_15m node.role maste
 10.42.0.10           57          38   0    0.28    0.27     0.26 d         -      elasticsearch-data-41
 ```
 
+Pod Failover scenario - Delete the pod. 
 ```
-
 kubectl get nodes
 NAME                           STATUS                     AGE       VERSION
 70-0-5-129.pools.spcsdns.net   Ready,SchedulingDisabled   23d       v1.7.2
@@ -334,124 +345,18 @@ pdc3-sm19                      Ready                      24d       v1.7.2
 kubectl cordon pdc3-sm16
 node "pdc3-sm16" cordoned
 
+kubectl delete po/elasticsearch-data-26
 
-kubectl get pods -o wide
+kubectl get pods -o wide | grep elasticsearch-data-26
 NAME                         READY     STATUS        RESTARTS   AGE       IP           NODE
-elasticsearch-data-0         1/1       Running       0          1h        10.40.0.3    pdc3-sm19
-elasticsearch-data-1         1/1       Running       0          1h        10.42.0.2    pdc3-sm18
-elasticsearch-data-10        1/1       Running       0          1h        10.40.0.5    pdc3-sm19
-elasticsearch-data-11        1/1       Running       0          1h        10.36.0.5    pdc-dell15
-elasticsearch-data-12        1/1       Running       0          1h        10.42.0.4    pdc3-sm18
-elasticsearch-data-13        1/1       Running       0          1h        10.47.0.6    pdc3-sm16
-elasticsearch-data-14        1/1       Running       0          1h        10.44.0.5    pdc-dell14
-elasticsearch-data-15        1/1       Running       0          1h        10.40.0.6    pdc3-sm19
-elasticsearch-data-16        1/1       Running       0          1h        10.44.0.6    pdc-dell14
-elasticsearch-data-17        1/1       Running       0          1h        10.36.0.6    pdc-dell15
-elasticsearch-data-18        1/1       Running       0          1h        10.47.0.7    pdc3-sm16
-elasticsearch-data-19        1/1       Running       0          1h        10.42.0.5    pdc3-sm18
-elasticsearch-data-2         1/1       Running       0          1h        10.44.0.3    pdc-dell14
-elasticsearch-data-20        1/1       Running       0          1h        10.40.0.7    pdc3-sm19
-elasticsearch-data-21        1/1       Running       0          1h        10.42.0.6    pdc3-sm18
-elasticsearch-data-22        1/1       Running       0          1h        10.36.0.7    pdc-dell15
-elasticsearch-data-23        1/1       Running       0          1h        10.47.0.8    pdc3-sm16
-elasticsearch-data-24        1/1       Running       0          1h        10.44.0.7    pdc-dell14
-elasticsearch-data-25        1/1       Running       0          1h        10.40.0.8    pdc3-sm19
 elasticsearch-data-26        0/1       Terminating   0          1h        <none>       pdc3-sm16
-elasticsearch-data-27        1/1       Running       0          1h        10.42.0.7    pdc3-sm18
-elasticsearch-data-28        1/1       Running       0          1h        10.44.0.8    pdc-dell14
-elasticsearch-data-29        1/1       Running       0          1h        10.36.0.8    pdc-dell15
-elasticsearch-data-3         1/1       Running       0          1h        10.47.0.4    pdc3-sm16
-elasticsearch-data-30        1/1       Running       0          1h        10.40.0.9    pdc3-sm19
-elasticsearch-data-31        1/1       Running       0          1h        10.36.0.9    pdc-dell15
-elasticsearch-data-32        1/1       Running       0          1h        10.44.0.9    pdc-dell14
-elasticsearch-data-33        1/1       Running       0          1h        10.42.0.8    pdc3-sm18
-elasticsearch-data-34        1/1       Running       0          1h        10.47.0.10   pdc3-sm16
-elasticsearch-data-35        1/1       Running       0          1h        10.40.0.10   pdc3-sm19
-elasticsearch-data-36        1/1       Running       0          1h        10.44.0.10   pdc-dell14
-elasticsearch-data-37        1/1       Running       0          1h        10.47.0.11   pdc3-sm16
-elasticsearch-data-38        1/1       Running       0          1h        10.36.0.10   pdc-dell15
-elasticsearch-data-39        1/1       Running       0          1h        10.42.0.9    pdc3-sm18
-elasticsearch-data-4         1/1       Running       0          1h        10.36.0.2    pdc-dell15
-elasticsearch-data-40        1/1       Running       0          1h        10.40.0.11   pdc3-sm19
-elasticsearch-data-41        1/1       Running       0          1h        10.42.0.10   pdc3-sm18
-elasticsearch-data-42        1/1       Running       0          1h        10.47.0.12   pdc3-sm16
-elasticsearch-data-43        1/1       Running       0          1h        10.36.0.11   pdc-dell15
-elasticsearch-data-44        1/1       Running       0          1h        10.44.0.11   pdc-dell14
-elasticsearch-data-45        1/1       Running       0          1h        10.40.0.12   pdc3-sm19
-elasticsearch-data-46        1/1       Running       0          1h        10.47.0.13   pdc3-sm16
-elasticsearch-data-47        1/1       Running       0          1h        10.44.0.12   pdc-dell14
-elasticsearch-data-48        1/1       Running       0          1h        10.36.0.12   pdc-dell15
-elasticsearch-data-49        1/1       Running       0          1h        10.42.0.11   pdc3-sm18
-elasticsearch-data-5         1/1       Running       0          1h        10.40.0.4    pdc3-sm19
-elasticsearch-data-6         1/1       Running       0          2m        10.47.0.5    pdc3-sm16
-elasticsearch-data-7         1/1       Running       0          1h        10.36.0.4    pdc-dell15
-elasticsearch-data-8         1/1       Running       0          1h        10.44.0.4    pdc-dell14
-elasticsearch-data-9         1/1       Running       0          1h        10.42.0.3    pdc3-sm18
-es-client-2155074821-nxdkt   1/1       Running       0          3d        10.47.0.3    pdc3-sm16
-es-client-2155074821-v0w31   1/1       Running       0          3d        10.36.0.1    pdc-dell15
-es-master-2996564765-4c56v   1/1       Running       0          3d        10.44.0.2    pdc-dell14
-es-master-2996564765-rql6m   1/1       Running       0          3d        10.47.0.2    pdc3-sm16
-es-master-2996564765-zj0gc   1/1       Running       0          3d        10.40.0.2    pdc3-sm19
-kibana-2713637544-4wxsk      1/1       Running       0          3d        10.36.0.3    pdc-dell15
+```
 
-[root@PDC-SM13 hrishi]# kubectl get pods -o wide
+Pod moves from `pdc3-sm16` to `pdc-dell15`. Also verify the PVC attached to the pod which is reattached when the pod is scheduled to the different node.
+```
+kubectl get pods -o wide
 NAME                         READY     STATUS    RESTARTS   AGE       IP           NODE
-elasticsearch-data-0         1/1       Running   0          1h        10.40.0.3    pdc3-sm19
-elasticsearch-data-1         1/1       Running   0          1h        10.42.0.2    pdc3-sm18
-elasticsearch-data-10        1/1       Running   0          1h        10.40.0.5    pdc3-sm19
-elasticsearch-data-11        1/1       Running   0          1h        10.36.0.5    pdc-dell15
-elasticsearch-data-12        1/1       Running   0          1h        10.42.0.4    pdc3-sm18
-elasticsearch-data-13        1/1       Running   0          1h        10.47.0.6    pdc3-sm16
-elasticsearch-data-14        1/1       Running   0          1h        10.44.0.5    pdc-dell14
-elasticsearch-data-15        1/1       Running   0          1h        10.40.0.6    pdc3-sm19
-elasticsearch-data-16        1/1       Running   0          1h        10.44.0.6    pdc-dell14
-elasticsearch-data-17        1/1       Running   0          1h        10.36.0.6    pdc-dell15
-elasticsearch-data-18        1/1       Running   0          1h        10.47.0.7    pdc3-sm16
-elasticsearch-data-19        1/1       Running   0          1h        10.42.0.5    pdc3-sm18
-elasticsearch-data-2         1/1       Running   0          1h        10.44.0.3    pdc-dell14
-elasticsearch-data-20        1/1       Running   0          1h        10.40.0.7    pdc3-sm19
-elasticsearch-data-21        1/1       Running   0          1h        10.42.0.6    pdc3-sm18
-elasticsearch-data-22        1/1       Running   0          1h        10.36.0.7    pdc-dell15
-elasticsearch-data-23        1/1       Running   0          1h        10.47.0.8    pdc3-sm16
-elasticsearch-data-24        1/1       Running   0          1h        10.44.0.7    pdc-dell14
-elasticsearch-data-25        1/1       Running   0          1h        10.40.0.8    pdc3-sm19
 elasticsearch-data-26        1/1       Running   0          8s        10.36.0.13   pdc-dell15
-elasticsearch-data-27        1/1       Running   0          1h        10.42.0.7    pdc3-sm18
-elasticsearch-data-28        1/1       Running   0          1h        10.44.0.8    pdc-dell14
-elasticsearch-data-29        1/1       Running   0          1h        10.36.0.8    pdc-dell15
-elasticsearch-data-3         1/1       Running   0          1h        10.47.0.4    pdc3-sm16
-elasticsearch-data-30        1/1       Running   0          1h        10.40.0.9    pdc3-sm19
-elasticsearch-data-31        1/1       Running   0          1h        10.36.0.9    pdc-dell15
-elasticsearch-data-32        1/1       Running   0          1h        10.44.0.9    pdc-dell14
-elasticsearch-data-33        1/1       Running   0          1h        10.42.0.8    pdc3-sm18
-elasticsearch-data-34        1/1       Running   0          1h        10.47.0.10   pdc3-sm16
-elasticsearch-data-35        1/1       Running   0          1h        10.40.0.10   pdc3-sm19
-elasticsearch-data-36        1/1       Running   0          1h        10.44.0.10   pdc-dell14
-elasticsearch-data-37        1/1       Running   0          1h        10.47.0.11   pdc3-sm16
-elasticsearch-data-38        1/1       Running   0          1h        10.36.0.10   pdc-dell15
-elasticsearch-data-39        1/1       Running   0          1h        10.42.0.9    pdc3-sm18
-elasticsearch-data-4         1/1       Running   0          1h        10.36.0.2    pdc-dell15
-elasticsearch-data-40        1/1       Running   0          1h        10.40.0.11   pdc3-sm19
-elasticsearch-data-41        1/1       Running   0          1h        10.42.0.10   pdc3-sm18
-elasticsearch-data-42        1/1       Running   0          1h        10.47.0.12   pdc3-sm16
-elasticsearch-data-43        1/1       Running   0          1h        10.36.0.11   pdc-dell15
-elasticsearch-data-44        1/1       Running   0          1h        10.44.0.11   pdc-dell14
-elasticsearch-data-45        1/1       Running   0          1h        10.40.0.12   pdc3-sm19
-elasticsearch-data-46        1/1       Running   0          1h        10.47.0.13   pdc3-sm16
-elasticsearch-data-47        1/1       Running   0          1h        10.44.0.12   pdc-dell14
-elasticsearch-data-48        1/1       Running   0          1h        10.36.0.12   pdc-dell15
-elasticsearch-data-49        1/1       Running   0          1h        10.42.0.11   pdc3-sm18
-elasticsearch-data-5         1/1       Running   0          1h        10.40.0.4    pdc3-sm19
-elasticsearch-data-6         1/1       Running   0          2m        10.47.0.5    pdc3-sm16
-elasticsearch-data-7         1/1       Running   0          1h        10.36.0.4    pdc-dell15
-elasticsearch-data-8         1/1       Running   0          1h        10.44.0.4    pdc-dell14
-elasticsearch-data-9         1/1       Running   0          1h        10.42.0.3    pdc3-sm18
-es-client-2155074821-nxdkt   1/1       Running   0          3d        10.47.0.3    pdc3-sm16
-es-client-2155074821-v0w31   1/1       Running   0          3d        10.36.0.1    pdc-dell15
-es-master-2996564765-4c56v   1/1       Running   0          3d        10.44.0.2    pdc-dell14
-es-master-2996564765-rql6m   1/1       Running   0          3d        10.47.0.2    pdc3-sm16
-es-master-2996564765-zj0gc   1/1       Running   0          3d        10.40.0.2    pdc3-sm19
-kibana-2713637544-4wxsk      1/1       Running   0          3d        10.36.0.3    pdc-dell15
 ```
 
 ```
@@ -471,8 +376,7 @@ pdc3-sm19				70.0.0.87	1.76825		135 GB		123 GB		N/A		1.2.9-34a0276	Online
 ```
 
 
-Scale down the cluster under load
-
+Scale down the cluster under load to 45 replicas. 
 ```
 kubectl get pods -l "component=elasticsearch, role=data" -w 
 NAME                    READY     STATUS        RESTARTS   AGE
@@ -599,8 +503,10 @@ ip         heap.percent ram.percent cpu load_1m load_5m load_15m node.role maste
 10.36.0.4            61          43   0    0.10    0.34     0.44 d         -      elasticsearch-data-7
 10.47.0.6            57          49   0    0.18    0.19     0.38 d         -      elasticsearch-data-13
 10.36.0.11           52          43   0    0.10    0.34     0.44 d        
-
 ```
+
+This causes requests to timeout. 
+![Requests timing out due to scale down](stuck-ios.png){:width="655px" height="200px"}
 
 ```
 curl -XGET 'http://10.105.105.41:9200/_cat/indices?v&pretty'
@@ -611,7 +517,7 @@ green  open   test_data e6Z0a6sNQsSPqrlG_l537w   2   0   86945504            0  
 green  open   .kibana   aYx0lHENTiK4SEaweUxXqQ   1   1          2            1     20.2kb         10.1kb
 ```
 
-Drain the node and then delete it to verify pods move to another node
+Drain the node and then delete it to verify pods move to another node - Node maintenance scenario.
 ``` 
 kubectl get node pdc3-sm16 -o json
 {
@@ -890,13 +796,18 @@ kubectl get node pdc3-sm16 -o json
         }
     }
 }
+
+kubectl delete node pdc3-sm16
 ```
 
-elasticsearch-data-6 moved to `pdc-dell15`
+Verify that the pods move to a different node. The PX Volumes are still attached to the PVC since as part of the statefulset the PVC doesnt get deleted even when the pod is scheduled to another node. 
+
 ```
 kubectl get nodes --show-labels | grep px-storage-elasticsearch-data-6=true
 pdc-dell15                     Ready                      25d       v1.7.2    beta.kubernetes.io/arch=amd64,beta.kubernetes.io/fluentd-ds-ready=true,beta.kubernetes.io/os=linux,datanode-es-data-3=true,kubernetes.io/hostname=pdc-dell15,px-storage-elasticsearch-data-10=true,px-storage-elasticsearch-data-13=true,px-storage-elasticsearch-data-15=true,px-storage-elasticsearch-data-18=true,px-storage-elasticsearch-data-1=true,px-storage-elasticsearch-data-23=true,px-storage-elasticsearch-data-24=true,px-storage-elasticsearch-data-29=true,px-storage-elasticsearch-data-30=true,px-storage-elasticsearch-data-33=true,px-storage-elasticsearch-data-36=true,px-storage-elasticsearch-data-39=true,px-storage-elasticsearch-data-42=true,px-storage-elasticsearch-data-46=true,px-storage-elasticsearch-data-49=true,px-storage-elasticsearch-data-4=true,px-storage-elasticsearch-data-6=true
 ```
+Some requests timing out during the node deletion. 
+![node deletion](delete-node.png)
 
 Add the node back. Create `node-definition.json` with the following content
 ```
@@ -921,8 +832,7 @@ Add the node back. Create `node-definition.json` with the following content
     }
  }
 
- kubectl apply -f node-definition.json
-
+kubectl apply -f node-definition.json
 ```
 
 Verify node status.
@@ -942,7 +852,6 @@ Make sure some pods are scheduled on it.
 ```
 kubectl scale sts elasticsearch-data --replicas=60
 statefulset "elasticsearch-data" scaled
-
 
 kubectl get pods -l "component=elasticsearch, role=data" -o wide | grep pdc3-sm16
 elasticsearch-data-45   1/1       Running   0          4m        10.47.0.9    pdc3-sm16
@@ -967,6 +876,9 @@ End of Data load
 [I 170827 03:26:00 es_test_data:72] Upload: OK - upload took:   182ms, total docs uploaded: 100000000
 [I 170827 03:26:01 es_test_data:253] Done - total docs uploaded: 100000000, took 52640 seconds
 ```
+There was a loss of some data where the ES cluster was timing out on some of the requests. It must be likely that the client which was load balanced was evicted from the node that was drained. 
+
+![Kibana After Dataload](kibana-after-data-load.png){:width="655px" height="200px"}
 
 Delete a node abruptly, do not drain it first
 ``` 
