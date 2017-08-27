@@ -1,0 +1,62 @@
+{
+    "apiVersion": "v1",
+    "kind": "Node",
+    "metadata": {
+        "annotations": {
+            "node.alpha.kubernetes.io/ttl": "0",
+            "volumes.kubernetes.io/controller-managed-attach-detach": "true"
+        },
+        "labels": {
+            "beta.kubernetes.io/arch": "amd64",
+            "beta.kubernetes.io/fluentd-ds-ready": "true",
+            "beta.kubernetes.io/os": "linux",
+            "kubernetes.io/hostname": "pdc3-sm16",
+        },
+        "name": "pdc3-sm16",
+        "resourceVersion": "4533767",
+        "selfLink": "/api/v1/nodes/pdc3-sm16",
+        "uid": "1264a127-76fd-11e7-8556-ac1f6b2024cc"
+    },
+    "spec": {
+        "externalID": "pdc3-sm16"
+    },
+    "status": {
+        "addresses": [
+            {
+                "address": "70.0.0.84",
+                "type": "InternalIP"
+            },
+            {
+                "address": "pdc3-sm16",
+                "type": "Hostname"
+            }
+        ],
+        "allocatable": {
+            "cpu": "64",
+            "memory": "131640192Ki",
+            "pods": "110"
+        },
+        "capacity": {
+            "cpu": "64",
+            "memory": "131742592Ki",
+            "pods": "110"
+        },
+        "daemonEndpoints": {
+            "kubeletEndpoint": {
+                "Port": 10250
+            }
+        },
+        "nodeInfo": {
+            "architecture": "amd64",
+            "bootID": "b2e045af-0c7b-4fe9-9cee-52c3b9e52b69",
+            "containerRuntimeVersion": "docker://1.12.6",
+            "kernelVersion": "3.10.0-514.el7.x86_64",
+            "kubeProxyVersion": "v1.7.2",
+            "kubeletVersion": "v1.7.2",
+            "machineID": "c5959c56cd1c433982f3dae51cc26709",
+            "operatingSystem": "linux",
+            "osImage": "CentOS Linux 7 (Core)",
+            "systemUUID": "00000000-0000-0000-0000-0CC47AD464AA"
+        }
+    }
+}
