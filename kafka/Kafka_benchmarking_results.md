@@ -1,6 +1,7 @@
 # Kafka benchmarking results
 
-### 10 mil with PX (5KB Payload)
+## 10 mil with PX (5KB Payload)
+
 ```
 bin/kafka-run-class.sh org.apache.kafka.tools.ProducerPerformance --topic kbrep1-topic-px --num-records 10000000 --record-size 5 --throughput -1 --producer-props bootstrap.servers=kafka-0.broker.kafka.svc.cluster.local:9092,kafka-1.broker.kafka.svc.cluster.local:9092,kafka-2.broker.kafka.svc.cluster.local:9092 batch.size=8196
 
@@ -11,8 +12,7 @@ bin/kafka-run-class.sh org.apache.kafka.tools.ProducerPerformance --topic kbrep1
 10000000 records sent, 531886.601777 records/sec (2.54 MB/sec), 7.81 ms avg latency, 372.00 ms max latency, 1 ms 50th, 57 ms 95th, 122 ms 99th, 169 ms 99.9th.
 ```
 
-
-### 15 mil with PX (5KB Payload)
+## 15 mil with PX (5KB Payload)
 ```
 bin/kafka-run-class.sh org.apache.kafka.tools.Produce
 rPerformance --topic kbrep1-topic-px --num-records 15000000 --record-size 5 --th
@@ -29,9 +29,7 @@ cluster.local:9092 batch.size=8196
 15000000 records sent, 433789.294080 records/sec (2.07 MB/sec), 8.87 ms avg latency, 379.00 ms max latency, 1 ms 50th, 97 ms 95th, 166 ms 99th, 231 ms 99.9th.
 ```
 
-
-
-### 25 mil with PX (5KB Payload)
+## 25 mil with PX (5KB Payload)
 
 ```
 bin/kafka-run-class.sh org.apache.kafka.tools.Produce
@@ -51,7 +49,7 @@ ka.svc.cluster.local:9092 batch.size=8196
 25000000 records sent, 522990.669846 records/sec (2.49 MB/sec), 8.88 ms avg latency, 441.00 ms max latency, 1 ms 50th, 56 ms 95th, 162 ms 99th, 315 ms 99.9th.
 ```
 
-### 50 mil with PX (5KB Payload)
+## 50 mil with PX (5KB Payload)
 
 ```
 bin/kafka-run-class.sh org.apache.kafka.tools.Produce
@@ -81,7 +79,7 @@ ka.svc.cluster.local:9092 batch.size=8196
 50000000 records sent, 544994.768050 records/sec (2.60 MB/sec), 5.81 ms avg latency, 318.00 ms max latency, 1 ms 50th, 39 ms 95th, 100 ms 99th, 193 ms 99.9th.
 ```
 
-### 200 mil with PX (5KB Payload)
+## 200 mil with PX (5KB Payload)
 ```
 bin/kafka-run-class.sh org.apache.kafka.tools.Produce
 rPerformance --topic kbrep1-topic-px --num-records 200000000 --record-size 5 --t
@@ -185,11 +183,7 @@ kbrep1-topic-px:2:66666667
 kbrep1-topic-px:1:66666668
 kbrep1-topic-px:0:66666666
 ```
-
-
-
-
-### 500 mil with PX (5KB Payload)
+## 500 mil with PX (5KB Payload)
 
 ```
 bin/kafka-run-class.sh org.apache.kafka.tools.Produce
