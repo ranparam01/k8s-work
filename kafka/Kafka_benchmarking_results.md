@@ -1,5 +1,7 @@
 # Kafka benchmarking results
 
+## Single Producer, no replication with PX 
+
 ## 10 mil with PX (5KB Payload)
 
 ```
