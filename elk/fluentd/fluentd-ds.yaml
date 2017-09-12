@@ -52,24 +52,35 @@ data:
 
     <source>
       type tail
-      path /var/log/containers/*.log
-      pos_file /var/log/es-containers.log.pos
+      path /var/log/containers/portworx*.log
+      pos_file /var/log/px-container.log.pos
       time_format %Y-%m-%dT%H:%M:%S.%N
-      tag kubernetes.*
+      tag portworx.*
       format json
       read_from_head true
       keep_time_key true
     </source>
 
-    <filter kubernetes.**>
-      type kubernetes_metadata
-    </filter>
+    <match portworx.*>
+       type elasticsearch
+       log_level info
+       include_tag_key true
+       host 10.111.118.234
+       port 9200
+       logstash_format true
+       buffer_chunk_limit 2M
+       buffer_queue_limit 32
+       flush_interval 5s
+       max_retry_wait 30
+       disable_retry_limit
+       num_threads 8
+    </match>
 
     <match **>
        type elasticsearch
        log_level info
        include_tag_key true
-       host 10.105.105.41
+       host 10.111.118.234
        port 9200
        logstash_format true
        buffer_chunk_limit 2M
@@ -121,3 +132,5 @@ spec:
         - name: config
           configMap:
             name: fluentd
+
+
