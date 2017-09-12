@@ -171,9 +171,9 @@ green  open   .kibana             Fp23fd8BSkyV0iDtVuao-w   1   1          7     
 
 Login to the kibana dashboard and navigate to the `Management` submenu item. This allows you to create an index pattern which stores the collected logs. In our case the logs are stored in indexes with the name `logstash-` followed by the date. 
 
-![Create Kibana Index patterns](./images/kibana-index-patterns.png){:width="655px" height="200px"}
+![Create Kibana Index patterns](./images/kibana-index-patterns.png)
 
 Navigate to the `Discover` menu item. You can select the index pattern which was created earlier. It would list the available colums on the left hand side menu. In our setup, the columns with the pod name, hostname, log and the time are selected, but any columns could be selected for viewing the logs. 
 
-![View PX logs](./images/filter-px-logs.png){:width="655px" height="200px"}
+![View PX logs](./images/filter-px-logs.png)
 
