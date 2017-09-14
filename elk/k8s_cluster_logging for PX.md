@@ -1,9 +1,9 @@
-PX Logs monitoring on Kubernetes using Elastic search, Kibana and Fluentd. 
+PX Logs management on Kubernetes using Elastic search, Kibana and Fluentd. 
 
 # PX Logs on Kubernetes
 PX runs as a deamonset on the Kubernetes cluster which ensures that it runs on each node as part of the Kubernetes cluster. To allow access to the logs of a failed node, pod or a container in kubernetes we would have to adopt a complete logging solution. The need to access or view logs of failed container workloads means that we would need to enable storage and the logs should have a seperate lifecycle than that of the container that creates it. 
 
-Elastic Search, FluentD and Kibana allow us to setup a complete logging solution for accessing logs of the kubernetes cluster and any pods that are scheduled on it. 
+Elastic Search, FluentD and Kibana allow us to setup a complete logging solution for accessing logs of the PX pods scheduled on the kubernetes cluster. 
 
 Setup Elastic Search and Kibana on your kubernetes cluster by following the the steps mentioned in the document here
 [Elastic Search and Kibana on Kubernetes](https://docs.portworx.com/scheduler/kubernetes/elasticstack-kibana-k8s.html)
@@ -12,8 +12,8 @@ Setup Elastic Search and Kibana on your kubernetes cluster by following the the 
 Fluentd is a log collector which enables you to log everything in a unified manner. Fluentd uses JSON as the log collection format. 
 
 ### Install fluentd on your kubernetes cluster.
-fluentd runs as a deamonset on the kubernetes cluster thus allows it to collect logs from all the pods placed on each node. 
-If the need is to just view PX Logs, please comment out the line `@include kubernetes.conf` from the `configmap` spec below. 
+fluentd runs as a deamonset on the kubernetes cluster thus allows it to collect logs from all the PX pods placed on each node. 
+If the need is to also enable the entire kubernetes cluster level logging, then please add `@include kubernetes.conf` and add a relevant `match` directive in the `ConfigMap`
 
 Create a file named ```fluentd-spec.yaml``` and apply the configuration using `kubectl`
 ```
@@ -67,36 +67,36 @@ metadata:
   namespace: kube-system
 data:
   fluent.conf: |
-    @include kubernetes.conf
 
     <source>
       type tail
-      path /var/log/containers/portworx-*.log
+      path /var/log/containers/portworx*.log
       pos_file /var/log/px-container.log.pos
       time_format %Y-%m-%dT%H:%M:%S.%N
-      tag portworx
+      tag portworx.*
       format json
       read_from_head true
       keep_time_key true
     </source>
-
-    <match **>
+    <filter kubernetes.**>
+      type kubernetes_metadata
+    </filter>
+    <match portworx.**>
        type elasticsearch
        log_level info
        include_tag_key true
-
-       # IP of the loadbalancer of the es client node. 
-       host 10.108.118.191
+       logstash_prefix px-log ## Prefix for creating an Elastic search index. 
+       ## IP Address or hostname of the Elastic search client service. 
+       host 10.111.118.234
        port 9200
        logstash_format true
        buffer_chunk_limit 2M
        buffer_queue_limit 32
-       flush_interval 5s
-       max_retry_wait 30
+       flush_interval 60s  # flushes events ever minute. Can be configured as needed. 
+       max_retry_wait 30 
        disable_retry_limit
        num_threads 8
     </match>
-
 ---
 apiVersion: extensions/v1beta1
 kind: DaemonSet
@@ -140,7 +140,7 @@ spec:
             name: fluentd
 ```
 
-This configuration would enable cluster level logging for the kubernetes cluster. 
+This configuration would enable cluster level logging for the Portworx Pods. 
 
 A bit more about fluentd. 
 
@@ -161,19 +161,23 @@ A view of Elastic search indices for cluster level logs collected for all the po
 ```
 curl -XGET 'http://10.108.118.191:9200/_cat/indices?v&pretty'
 health status index               uuid                   pri rep docs.count docs.deleted store.size pri.store.size
-green  open   logstash-2017.09.11 Hka67ifdQcG7du7shSzGjg   5   1    4092115            0      3.1gb          1.5gb
-green  open   customer            T4IGsDgmT3u-Z19-P-fBuA   5   1          1            0      8.2kb          4.1kb
-green  open   logstash-2017.09.12 MVcyz0irQIWVzI6ZypQYkQ   5   1     166920            0    169.9mb         84.7mb
-green  open   .kibana             Fp23fd8BSkyV0iDtVuao-w   1   1          7            0    101.9kb         49.6kb 
+green  open   px-logs-2017.09.12  LIHcjH74Q2ScLoDf5hAQIA   5   1       1178            0      1.8mb          895kb
+green  open   px-logs-2017.09.13  ks7A6lLTR8CUOROgXPiPCQ   5   1        759            0      2.1mb          1.1mb
+green  open   .kibana             Fp23fd8BSkyV0iDtVuao-w   1   1         10            1     78.6kb         39.3kb
+green  open   px-logs-2017.09.11  Rf5ZMV53RVOXqlwInbCUzw   5   1       7247            0      7.9mb          4.3mb
 ```
 
 ### Screen grabs
 
-Login to the kibana dashboard and navigate to the `Management` submenu item. This allows you to create an index pattern which stores the collected logs. In our case the logs are stored in indexes with the name `logstash-` followed by the date. 
+Login to the kibana dashboard and navigate to the `Management` submenu item. This allows you to create an index pattern which stores the collected logs. In our case the logs are stored in indexes with the name `px-logs-` followed by the date. This is configurable and can be changed in the `match` directive for the variable `logstash_prefix`
 
-![Create Kibana Index patterns](./images/kibana-index-patterns.png)
+![Create Kibana Index patterns](./images/kibana-px-index-pattern.png)
 
-Navigate to the `Discover` menu item. You can select the index pattern which was created earlier. It would list the available colums on the left hand side menu. In our setup, the columns with the pod name, hostname, log and the time are selected, but any columns could be selected for viewing the logs. 
+Upon creation of the Index, the screen would show you all the fields which are part of the index. These fields can be used for searches and filtering while viewing the logs.
 
-![View PX logs](./images/filter-px-logs.png)
+![Fields of the Index](./images/px-log-fields.png)
+
+Navigate to the `Discover` menu item. You can select the index pattern which was created earlier. It would list the available colums on the left hand side menu. In our setup, the columns with the pod name, hostname, log and the time are selected, but any columns could be selected for viewing the logs. You could also save the searches and search/view logs based on time. 
+
+![View PX logs](./images/view-px-logs.png)
 

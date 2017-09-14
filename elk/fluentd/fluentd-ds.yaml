@@ -48,8 +48,6 @@ metadata:
   namespace: kube-system
 data:
   fluent.conf: |
-    @include kubernetes.conf
-
     <source>
       type tail
       path /var/log/containers/portworx*.log
@@ -61,10 +59,17 @@ data:
       keep_time_key true
     </source>
 
-    <match portworx.*>
+    <filter portworx.**>
+      type kubernetes_metadata
+    </filter>
+
+    <match portworx.**>
        type elasticsearch
        log_level info
        include_tag_key true
+       logstash_prefix px-log
+
+       ## Host name / IP Address of the Elastic Search Client endpoint.
        host 10.111.118.234
        port 9200
        logstash_format true
@@ -75,22 +80,6 @@ data:
        disable_retry_limit
        num_threads 8
     </match>
-
-    <match **>
-       type elasticsearch
-       log_level info
-       include_tag_key true
-       host 10.111.118.234
-       port 9200
-       logstash_format true
-       buffer_chunk_limit 2M
-       buffer_queue_limit 32
-       flush_interval 5s
-       max_retry_wait 30
-       disable_retry_limit
-       num_threads 8
-    </match>
-
 ---
 apiVersion: extensions/v1beta1
 kind: DaemonSet
