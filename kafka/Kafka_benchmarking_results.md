@@ -1,66 +1,46 @@
 # Kafka benchmarking results
 
-## Single Producer, no replication
---------------------------------------------------------------------------------------------------------
-### 25 mil (5KB Payload)
-```
-With PX Replication = 3 
--------------------------------------
-25000000 records sent, 522990.669846 records/sec (2.49 MB/sec), 8.88 ms avg latency, 441.00 ms max latency, 1 ms 50th, 56 ms 95th, 162 ms 99th, 315 ms 99.9th.
+Benchmarking of a 3 node Kafka cluster. 
 
-With PX Replication = 1 (io_profile="db")
--------------------------------------
-25000000 records sent, 697427.885957 records/sec (3.33 MB/sec), 9.58 ms avg latency, 507.00 ms max latency, 1 ms 50th, 58 ms 95th, 185 ms 99th, 455 ms 99.9th.
+The benchmarking numbers were tested on Kubernetes with Portworx as the Volume driver. A 3 node Kafka cluster with a 3 node Zookeeper were deployed on the kubernetes cluster v 1.7.0 
+The tests were then carried out without Portworx on a 3 node Kafka cluster deployed on VMs. 
+The record sizes used for these tests were 25 million, 50 million, 200 million and 500 million. 
 
-Without PX
--------------------------------------
-25000000 records sent, 1201114.634381 records/sec (5.73 MB/sec), 1.24 ms avg latency, 212.00 ms max latency, 1 ms 50th, 2 ms 95th, 14 ms 99th, 26 ms 99.9th.
-```
+4 scenarios are used for benchmarking. 
+- Single producer no replication. 
+	a) Portworx replication factor = 3
+	b) Portworx replication factor = 1
+	c) Without Portworx. 
+- Single Producer with Asynchronous Replication factor = 3
+	a) Portwork replication factor = 2
+	b) Without Portworx
+- Single Producer with Synchronous Replication factor = 3
+	a) Portwork replication factor = 2
+	b) Without Portworx
+- Three Producers with Asynchronous Replication factor = 3
+	a) Portwork replication factor = 2
+	b) Without Portworx
 
-### 50 mil (5KB Payload)
-```
-With PX Replication = 3
--------------------------------------
-50000000 records sent, 544994.768050 records/sec (2.60 MB/sec), 5.81 ms avg latency, 318.00 ms max latency, 1 ms 50th, 39 ms 95th, 100 ms 99th, 193 ms 99.9th.
 
-With PX Replication = 1 (io_profile="db")
--------------------------------------
-50000000 records sent, 492125.984252 records/sec (2.35 MB/sec), 6.81 ms avg latency, 336.00 ms max latency, 1 ms 50th, 51 ms 95th, 119 ms 99th, 196 ms 99.9th.
+## Single Producer with Asynchronous Replication factor = 3
+![single-prod-async-3-mb-sec](./images/single-prod-async-3-mb-sec.png)
 
-Without PX
--------------------------------------
-50000000 records sent, 1201028.080037 records/sec (5.73 MB/sec), 1.21 ms avg latency, 245.00 ms max latency, 1 ms 50th, 2 ms 95th, 13 ms 99th, 34 ms 99.9th.
-```
+![single-prod-async-3-rec-sec](./images/single-prod-async-3-rec-sec.png)
 
-### 200 mil  (5KB Payload)
-```
-With PX replication = 3
--------------------------------------
-200000000 records sent, 460780.654585 records/sec (2.20 MB/sec), 7.13 ms avg latency, 1017.00 ms max latency, 1 ms 50th, 44 ms 95th, 128 ms 99th, 514 ms 99.9th.
+## Single Producer with Synchronous Replication factor = 3
+![single-prod-sync-3-mb-sec](./images/single-prod-sync-3-mb-sec.png)
 
-With PX Replication = 1 (io_profile="db")
--------------------------------------
-200000000 records sent, 452283.011572 records/sec (2.16 MB/sec), 7.19 ms avg latency, 526.00 ms max latency, 1 ms 50th, 48 ms 95th, 135 ms 99th, 248 ms 99.9th.
+![single-prod-sync-3-rec-sec](./images/single-prod-sync-3-rec-sec.png)
 
-Without PX
--------------------------------------
-200000000 records sent, 1297597.498232 records/sec (6.19 MB/sec), 1.03 ms avg latency, 265.00 ms max latency, 1 ms 50th, 2 ms 95th, 7 ms 99th, 35 ms 99.9th.
-```
+## Three Producers with Asynchronous Replication factor = 3
+![three-prod-async-3-mb-sec-px](./images/three-prod-async-3-mb-sec-px.png)
+![three-prod-async-3-mb-sec](./images/three-prod-async-3-mb-sec.png)
 
-### 500 mil (5KB Payload)
-```
-With PX Replication = 3 
--------------------------------------
-500000000 records sent, 587933.718704 records/sec (2.80 MB/sec), 7.07 ms avg latency, 893.00 ms max latency, 1 ms 50th, 42 ms 95th, 128 ms 99th, 452 ms 99.9th.
+![three-prod-async-3-rec-sec-px](./images/three-prod-async-3-rec-sec-px.png)
+![three-prod-async-3-rec-sec](./images/three-prod-async-3-rec-sec.png)
 
-With PX replication = 1 (io_profile="db")
--------------------------------------
-500000000 records sent, 509302.927270 records/sec (2.43 MB/sec), 6.71 ms avg latency, 387.00 ms max latency, 1 ms 50th, 44 ms 95th, 125 ms 99th, 238 ms 99.9th.
 
-Without PX
--------------------------------------
-500000000 records sent, 1352060.269439 records/sec (6.45 MB/sec), 0.96 ms avg latency, 658.00 ms max latency, 1 ms 50th, 1 ms 95th, 3 ms 99th, 47 ms 99.9th.
-```
+# Raw output 
 
 ## Single producer with Async Replication = 3 
 --------------------------------------------------------------------------------------------------------
@@ -352,4 +332,65 @@ Cordon all nodes so that the kafka pod doesnt get rescheduled. Delete kafka-1 po
 #### Leader Election upon Pod addition without PX. 
 13 seconds (Recover 3/3 nodes)
 
+## Single Producer, no replication
+--------------------------------------------------------------------------------------------------------
 
+### 25 mil (5KB Payload)
+```
+With PX Replication = 3 
+-------------------------------------
+25000000 records sent, 522990.669846 records/sec (2.49 MB/sec), 8.88 ms avg latency, 441.00 ms max latency, 1 ms 50th, 56 ms 95th, 162 ms 99th, 315 ms 99.9th.
+
+With PX Replication = 1 (io_profile="db")
+-------------------------------------
+25000000 records sent, 697427.885957 records/sec (3.33 MB/sec), 9.58 ms avg latency, 507.00 ms max latency, 1 ms 50th, 58 ms 95th, 185 ms 99th, 455 ms 99.9th.
+
+Without PX
+-------------------------------------
+25000000 records sent, 1201114.634381 records/sec (5.73 MB/sec), 1.24 ms avg latency, 212.00 ms max latency, 1 ms 50th, 2 ms 95th, 14 ms 99th, 26 ms 99.9th.
+```
+
+### 50 mil (5KB Payload)
+```
+With PX Replication = 3
+-------------------------------------
+50000000 records sent, 544994.768050 records/sec (2.60 MB/sec), 5.81 ms avg latency, 318.00 ms max latency, 1 ms 50th, 39 ms 95th, 100 ms 99th, 193 ms 99.9th.
+
+With PX Replication = 1 (io_profile="db")
+-------------------------------------
+50000000 records sent, 492125.984252 records/sec (2.35 MB/sec), 6.81 ms avg latency, 336.00 ms max latency, 1 ms 50th, 51 ms 95th, 119 ms 99th, 196 ms 99.9th.
+
+Without PX
+-------------------------------------
+50000000 records sent, 1201028.080037 records/sec (5.73 MB/sec), 1.21 ms avg latency, 245.00 ms max latency, 1 ms 50th, 2 ms 95th, 13 ms 99th, 34 ms 99.9th.
+```
+
+### 200 mil  (5KB Payload)
+```
+With PX replication = 3
+-------------------------------------
+200000000 records sent, 460780.654585 records/sec (2.20 MB/sec), 7.13 ms avg latency, 1017.00 ms max latency, 1 ms 50th, 44 ms 95th, 128 ms 99th, 514 ms 99.9th.
+
+With PX Replication = 1 (io_profile="db")
+-------------------------------------
+200000000 records sent, 452283.011572 records/sec (2.16 MB/sec), 7.19 ms avg latency, 526.00 ms max latency, 1 ms 50th, 48 ms 95th, 135 ms 99th, 248 ms 99.9th.
+
+Without PX
+-------------------------------------
+200000000 records sent, 1297597.498232 records/sec (6.19 MB/sec), 1.03 ms avg latency, 265.00 ms max latency, 1 ms 50th, 2 ms 95th, 7 ms 99th, 35 ms 99.9th.
+```
+
+### 500 mil (5KB Payload)
+```
+With PX Replication = 3 
+-------------------------------------
+500000000 records sent, 587933.718704 records/sec (2.80 MB/sec), 7.07 ms avg latency, 893.00 ms max latency, 1 ms 50th, 42 ms 95th, 128 ms 99th, 452 ms 99.9th.
+
+With PX replication = 1 (io_profile="db")
+-------------------------------------
+500000000 records sent, 509302.927270 records/sec (2.43 MB/sec), 6.71 ms avg latency, 387.00 ms max latency, 1 ms 50th, 44 ms 95th, 125 ms 99th, 238 ms 99.9th.
+
+Without PX
+-------------------------------------
+500000000 records sent, 1352060.269439 records/sec (6.45 MB/sec), 0.96 ms avg latency, 658.00 ms max latency, 1 ms 50th, 1 ms 95th, 3 ms 99th, 47 ms 99.9th.
+```
