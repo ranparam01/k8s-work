@@ -133,6 +133,32 @@ Raw Output
 [2017-09-14 20:26:13,319] INFO [ReplicaFetcherThread-0-1002]: Based on follower's leader epoch, leader replied with an offset 166666667 >= the follower's log end offset 166666667 in kbrep3-async-px2-0. No truncation needed. (kafka.server.ReplicaFetcherThread)
 ```
 
+#### Leader Election upon Pod removal without PX. 
+20 ms. (Fail 2/3 nodes)
+#### Leader Election upon Pod addition without PX. 
+12 seconds (Recover 3/3 nodes)
+
+Raw Output
+```
+[2017-09-14 23:01:31,862] INFO Partition [kbrep3-topic,1] on broker 1: Expanding ISR from 1 to 1,0 (kafka.cluster.Partition)
+[2017-09-14 23:01:31,867] INFO Partition [kbrep3-topic,2] on broker 1: Expanding ISR from 1 to 1,0 (kafka.cluster.Partition)
+[2017-09-14 23:01:31,870] INFO Partition [kbrep3-topic,0] on broker 1: Expanding ISR from 1 to 1,0 (kafka.cluster.Partition)
+[2017-09-14 23:01:37,941] INFO Partition [kbrep3-topic,1] on broker 1: Expanding ISR from 1,0 to 1,0,2 (kafka.cluster.Partition)
+[2017-09-14 23:01:37,946] INFO Partition [kbrep3-topic,2] on broker 1: Expanding ISR from 1,0 to 1,0,2 (kafka.cluster.Partition)
+[2017-09-14 23:01:37,949] INFO Partition [kbrep3-topic,0] on broker 1: Expanding ISR from 1,0 to 1,0,2 (kafka.cluster.Partition)
+[2017-09-14 23:01:41,460] INFO [ReplicaFetcherManager on broker 1] Removed fetcher for partitions kbrep3-topic-2 (kafka.server.ReplicaFetcherManager)
+[2017-09-14 23:01:41,468] INFO [ReplicaFetcherManager on broker 1] Added fetcher for partitions List([kbrep3-topic-2, initOffset 166666667 to broker BrokerEndPoint(2,pdc3-sm19,9092)] ) (kafka.server.ReplicaFetcherManager)
+[2017-09-14 23:01:41,468] INFO [ReplicaFetcherThread-0-2]: Starting (kafka.server.ReplicaFetcherThread)
+[2017-09-14 23:01:41,471] INFO [ReplicaFetcherManager on broker 1] Removed fetcher for partitions kbrep3-topic-0 (kafka.server.ReplicaFetcherManager)
+[2017-09-14 23:01:41,473] INFO [ReplicaFetcherThread-0-2]: Based on follower's leader epoch, leader replied with an offset 166666667 >= the follower's log end offset 166666667 in kbrep3-topic-2. No truncation needed. (kafka.server.ReplicaFetcherThread)
+[2017-09-14 23:01:41,473] INFO Truncating kbrep3-topic-2 to 166666667 has no effect as the largest offset in the log is 166666666. (kafka.log.Log)
+[2017-09-14 23:01:41,476] INFO [ReplicaFetcherManager on broker 1] Added fetcher for partitions List([kbrep3-topic-0, initOffset 166666667 to broker BrokerEndPoint(0,pdc3-sm18,9092)] ) (kafka.server.ReplicaFetcherManager)
+[2017-09-14 23:01:41,476] INFO [ReplicaFetcherThread-0-0]: Starting (kafka.server.ReplicaFetcherThread)
+[2017-09-14 23:01:41,480] INFO [ReplicaFetcherThread-0-0]: Based on follower's leader epoch, leader replied with an offset 166666667 >= the follower's log end offset 166666667 in kbrep3-topic-0. No truncation needed. (kafka.server.ReplicaFetcherThread)
+[2017-09-14 23:01:41,480] INFO Truncating kbrep3-topic-0 to 166666667 has no effect as the largest offset in the log is 166666666. (kafka.log.Log)
+```
+
+
 ## Single producer with sync Replication = 3 
 --------------------------------------------------------------------------------------------------------
 ### 25 mil (5KB Payload)
@@ -201,8 +227,11 @@ Raw Output.
 [2017-09-14 18:57:50,360] INFO Truncating kbrep3-async-px2-0 to 166666667 has no effect as the largest offset in the log is 166666666. (kafka.log.Log)
 ```
 
-### Leader Election upon Pod failure Without PX. 
-`<WIP>`
+### Leader Election upon Pod failure without PX. 
+10 ms. (Fail 2/3 nodes)
+#### Leader Election upon Pod addition without PX. 
+9 seconds (Recover 3/3 nodes)
+
 
 ## Three producers with async Replication = 3 
 --------------------------------------------------------------------------------------------------------
@@ -314,11 +343,13 @@ Producer 3
 Cordon all nodes so that the kafka pod doesnt get rescheduled. Delete kafka-1 pod. It would wait in Pending state, with no nodes to run upon. 
 
 #### Leader Election upon Pod removal With PX. 
-`<WIP>`
+35ms (Fail 2/3 nodes)
 #### Leader Election upon Pod addition with PX. 
-`<WIP>`
+129 seconds (Recover 3/3 nodes)
 
-### Leader Election upon Pod failure Without PX. 
-`<WIP>`
+### Leader Election upon Pod failure without PX. 
+18 ms. (Fail 2/3 nodes)
+#### Leader Election upon Pod addition without PX. 
+13 seconds (Recover 3/3 nodes)
 
 
