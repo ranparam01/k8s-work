@@ -8,18 +8,18 @@ The record sizes used for these tests were 25 million, 50 million, 200 million a
 
 4 scenarios are used for benchmarking. 
 - Single producer no replication. 
-	a) Portworx replication factor = 3
-	b) Portworx replication factor = 1
-	c) Without Portworx. 
+  a) Portworx replication factor = 3
+  b) Portworx replication factor = 1
+  c) Without Portworx. 
 - Single Producer with Asynchronous Replication factor = 3
-	a) Portwork replication factor = 2
-	b) Without Portworx
+  a) Portwork replication factor = 2
+  b) Without Portworx
 - Single Producer with Synchronous Replication factor = 3
-	a) Portwork replication factor = 2
-	b) Without Portworx
+  a) Portwork replication factor = 2
+  b) Without Portworx
 - Three Producers with Asynchronous Replication factor = 3
-	a) Portwork replication factor = 2
-	b) Without Portworx
+  a) Portwork replication factor = 2
+  b) Without Portworx
 
 
 ## Single Producer with Asynchronous Replication factor = 3
