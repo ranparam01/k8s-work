@@ -10,7 +10,13 @@ The record sizes used for these tests were 25 million, 50 million, 200 million a
 - Single producer no replication. 
   - Portworx replication factor = 3
   - Portworx replication factor = 1
-  - Without Portworx. 
+  - Without Portworx.
+
+- Single Producer with Synchronous Replication factor = 3
+  - Portworx replication factor = 1
+- Single Producer no replication
+  - Portworx replication factor = 3
+
 - Single Producer with Asynchronous Replication factor = 3
   - Portwork replication factor = 2
   - Without Portworx
@@ -27,6 +33,15 @@ The record sizes used for these tests were 25 million, 50 million, 200 million a
 
 ![single-prod-async-3-rec-sec](./images/single-prod-async-3-rec-sec.png)
 
+## Single producer kafka repl = 3, px repl = 1 vs px repl = 3, kafka repl = 1
+
+Kafka repl = 3, px repl = 1
+500000000 records sent, 696845.658442 records/sec (3.32 MB/sec), 16.98 ms avg latency, 1298.00 ms max latency, 1 ms 50th, 93 ms 95th, 248 ms 99th, 942 ms 99.9th.
+
+Kafka repl = 1, px repl = 3
+500000000 records sent, 568795.212109 records/sec (2.71 MB/sec), 7.80 ms avg latency, 507.00 ms max latency, 1 ms 50th, 55 ms 95th, 142 ms 99th, 248 ms 99.9th.
+
+
 ## Single Producer with Synchronous Replication factor = 3
 ![single-prod-sync-3-mb-sec](./images/single-prod-sync-3-mb-sec.png)
 
@@ -38,6 +53,7 @@ The record sizes used for these tests were 25 million, 50 million, 200 million a
 
 ![three-prod-async-3-rec-sec-px](./images/three-prod-async-3-rec-sec-px.png)
 ![three-prod-async-3-rec-sec](./images/three-prod-async-3-rec-sec.png)
+
 
 
 # Raw output 
