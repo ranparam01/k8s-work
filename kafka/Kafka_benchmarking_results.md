@@ -39,12 +39,9 @@ The record sizes used for these tests were 25 million, 50 million, 200 million a
 
 ## Single producer kafka repl = 3, px repl = 1 vs px repl = 3, kafka repl = 1
 
-Kafka repl = 3, px repl = 1
-500000000 records sent, 696845.658442 records/sec (3.32 MB/sec), 16.98 ms avg latency, 1298.00 ms max latency, 1 ms 50th, 93 ms 95th, 248 ms 99th, 942 ms 99.9th.
+![single-prod-kafkavpx-mb-sec](./images/single-prod-kafkavpx-mb-sec.png)
 
-Kafka repl = 1, px repl = 3
-500000000 records sent, 568795.212109 records/sec (2.71 MB/sec), 7.80 ms avg latency, 507.00 ms max latency, 1 ms 50th, 55 ms 95th, 142 ms 99th, 248 ms 99.9th.
-
+![single-prod-kafkavpx-rec-sec](./images/single-prod-kafkavpx-rec-sec.png)
 
 ## Single Producer with Synchronous Replication factor = 3
 ![single-prod-sync-3-mb-sec](./images/single-prod-sync-3-mb-sec.png)
@@ -231,6 +228,16 @@ Raw Output
 [2017-09-14 23:01:41,480] INFO Truncating kbrep3-topic-0 to 166666667 has no effect as the largest offset in the log is 166666666. (kafka.log.Log)
 ```
 
+## Single producer kafka vs px repl 
+--------------------------------------------------------------------------------------------------------
+### 500 mil (5KB Payload)
+```
+Kafka repl = 3, px repl = 1
+500000000 records sent, 696845.658442 records/sec (3.32 MB/sec), 16.98 ms avg latency, 1298.00 ms max latency, 1 ms 50th, 93 ms 95th, 248 ms 99th, 942 ms 99.9th.
+
+Kafka repl = 1, px repl = 3
+500000000 records sent, 568795.212109 records/sec (2.71 MB/sec), 7.80 ms avg latency, 507.00 ms max latency, 1 ms 50th, 55 ms 95th, 142 ms 99th, 248 ms 99.9th.
+```
 
 ## Single producer with sync Replication = 3 
 --------------------------------------------------------------------------------------------------------
