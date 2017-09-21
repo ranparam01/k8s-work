@@ -37,6 +37,14 @@ The record sizes used for these tests were 25 million, 50 million, 200 million a
 
 ![single-prod-async-3-rec-sec](./images/single-prod-async-3-rec-sec.png)
 
+## Single producer kafka repl = 3, px repl = 1 vs px repl = 3, kafka repl = 1 
+With portworx/px-base-enterprise:master
+
+![single-prod-kafkavpx-mb-sec-px-base-enterprise-master](./images/single-prod-kafkavpx-mb-sec-px-base-enterprise-master.png)
+
+![single-prod-kafkavpx-rec-sec-px-base-enterprise-master](./images/single-prod-kafkavpx-rec-sec-px-base-enterprise-master.png)
+
+
 ## Single producer kafka repl = 3, px repl = 1 vs px repl = 3, kafka repl = 1
 
 ![single-prod-kafkavpx-mb-sec](./images/single-prod-kafkavpx-mb-sec.png)
