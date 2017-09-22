@@ -1,6 +1,6 @@
 # Kafka benchmarking results
 
-Benchmarking of a 3 node Kafka cluster. 
+Benchmarking of a 3 node Kafka cluster on Kubernetes.
 
 The benchmarking numbers were tested on Kubernetes with Portworx as the Volume driver. A 3 node Kafka cluster with a 3 node Zookeeper were deployed on the kubernetes cluster v 1.7.0 
 The tests were then carried out without Portworx on a 3 node Kafka cluster deployed on VMs. 
