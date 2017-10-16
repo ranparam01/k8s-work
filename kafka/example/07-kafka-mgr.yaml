@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-manager-config
+  namespace: kafka
+data:
+  ensemble: "zk-0.zk-headless.default.svc.cluster.local:2181,zk-1.zk-headless.default.svc.cluster.local:2181,zk-2.zk-headless.default.svc.cluster.local:2181"
+  secret: "letmein"
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: kafka-manager
+  namespace: kafka
+  labels:
+    component: kafka-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+     component: kafka-manager
+  template:
+    metadata:
+      labels:
+        component: kafka-manager
+    spec:
+      containers:
+      - name: kafka-manager
+        image: sheepkiller/kafka-manager
+        ports:
+        - containerPort: 9000
+          name: kafka-mgr    
+          protocol: TCP
+        env:
+        - name: ZK_HOSTS
+          valueFrom:
+            configMapKeyRef:
+              name: kafka-manager-config
+              key: ensemble
+        - name: APPLICATION_SECRET
+          valueFrom:
+            configMapKeyRef:
+              name: kafka-manager-config
+              key: secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-manager-svc
+  namespace: kafka
+  labels:
+     component: kafka-manager
+spec:
+  type: LoadBalancer
+  selector:
+    matchLabels:
+     component: kafka-manager
+  ports:
+  - name: http
+    port: 80
+    targetPort: 9000
+    protocol: TCP
