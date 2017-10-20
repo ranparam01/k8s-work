@@ -3,7 +3,6 @@ kind: ServiceAccount
 metadata:
   name: fluentd
   namespace: kube-system
-
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRole
@@ -21,7 +20,6 @@ rules:
   - get
   - list
   - watch
-
 ---
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
@@ -38,7 +36,6 @@ subjects:
 - kind: ServiceAccount
   name: default
   namespace: kube-system
-
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -48,15 +45,15 @@ metadata:
 data:
   fluent.conf: |
 
-    <source>
-      @type systemd
-      path /run/log/journal
-      filters [{ "_SYSTEMD_UNIT": "docker.service" }]
-      pos_file /tmp/dockerservice.pos
-      tag journal.dockerd
-      read_from_head true
-      strip_underscores true
-    </source>
+   <source>
+     @type systemd
+     path /run/log/journal
+     filters [{ "_SYSTEMD_UNIT": "docker.service" }]
+     pos_file /tmp/dockerservice.pos
+     tag journal.dockerd
+     read_from_head true
+     strip_underscores true
+   </source>
 
     <source>
       @type systemd
@@ -70,6 +67,17 @@ data:
 
     <source>
       type tail
+      path /var/log/containers/kube-proxy*.log
+      pos_file /tmp/kube-proxy.log.pos
+      time_format %Y-%m-%dT%H:%M:%S.%N
+      tag kubeproxy.*
+      format json
+      read_from_head true
+      keep_time_key true
+    </source>
+
+    <source>
+      type tail
       path /var/log/containers/portworx*.log
       pos_file /tmp/px-container.log.pos
       time_format %Y-%m-%dT%H:%M:%S.%N
@@ -78,10 +86,6 @@ data:
       read_from_head true
       keep_time_key true
     </source>
-
-    <filter portworx.**>
-      type kubernetes_metadata
-    </filter>
 
     <filter portworx.**>
       @type rename_key
@@ -101,10 +105,14 @@ data:
     </filter>
 
     <filter **>
+      type kubernetes_metadata
+    </filter>
+
+    <filter **>
       @type record_transformer
       enable_ruby
       <record>
-       guid "#{Random.new_seed}"
+       namesp ${kubernetes["namespace_name"]}
       </record>
     </filter>
 
