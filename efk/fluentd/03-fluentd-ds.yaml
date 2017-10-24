@@ -1,0 +1,62 @@
+---
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: fluentd
+  namespace: kube-system
+  labels:
+    k8s-app: fluentd-logging
+    version: v1
+    kubernetes.io/cluster-service: "true"
+spec:
+  template:
+    metadata:
+      labels:
+        k8s-app: fluentd-logging
+        version: v1
+        kubernetes.io/cluster-service: "true"
+    spec:
+      serviceAccount: fluentd
+      serviceAccountName: fluentd
+      initContainers:
+      - name: fluentd-init
+        image: hrishi/fluentd-initutils:v10
+        securityContext:
+          privileged: true
+        command: ['sh','-c','/usr/bin/init-fluentd.sh portworx-service']
+        volumeMounts:
+        - name: config
+          mountPath: /tmp
+      containers:
+        - name: fluentd
+          image: hrishi/fluentd:v1
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: varlog
+              mountPath: /var/log
+            - name: runlog
+              mountPath: /run/log
+            - name: varlibdockercontainers
+              mountPath: /var/lib/docker/containers
+            - name: posloc
+              mountPath: /tmp
+            - name: config
+              mountPath: /fluentd/etc/fluent.conf
+              subPath: fluent.conf
+      volumes:
+        - name: varlog
+          hostPath:
+            path: /var/log
+        - name: runlog
+          hostPath:
+            path: /run/log
+        - name: varlibdockercontainers
+          hostPath:
+            path: /var/lib/docker/containers
+        - name: config
+          configMap:
+            name: fluentd
+        - name: posloc
+          hostPath:
+            path: /tmp

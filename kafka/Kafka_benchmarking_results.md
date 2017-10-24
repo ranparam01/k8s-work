@@ -1,6 +1,6 @@
 # Kafka benchmarking results
 
-Benchmarking of a 3 node Kafka cluster on Kubernetes.
+Benchmarking of a 3 node Kafka cluster. 
 
 The benchmarking numbers were tested on Kubernetes with Portworx as the Volume driver. A 3 node Kafka cluster with a 3 node Zookeeper were deployed on the kubernetes cluster v 1.7.0 
 The tests were then carried out without Portworx on a 3 node Kafka cluster deployed on VMs. 
@@ -16,6 +16,10 @@ The record sizes used for these tests were 25 million, 50 million, 200 million a
   - Portworx replication factor = 1
 - Single Producer no replication
   - Portworx replication factor = 3
+
+- Single Producer with Asynchronous Replication factor = 3 (px-base-enterprise:master)
+  - Portwork replication factor = 2
+  - Without Portworx
 
 - Single Producer with Asynchronous Replication factor = 3
   - Portwork replication factor = 2
@@ -44,6 +48,13 @@ With portworx/px-base-enterprise:master
 
 ![single-prod-kafkavpx-rec-sec-px-base-enterprise-master](./images/single-prod-kafkavpx-rec-sec-px-base-enterprise-master.png)
 
+## Single Producer with Asynchronous Replication factor = 3 (px-base-enterprise:master)
+
+![single-prod-async-3-px-rep2-mb-sec-px-base-enterprise-master](./images/single-prod-async-3-px-rep2-mb-sec-px-base-enterprise-master.png)
+
+![single-prod-async-3-px-rep2-rec-sec-px-base-enterprise-master](./images/single-prod-async-3-px-rep2-rec-sec-px-base-enterprise-master.png)
+
+![single-prod-async-3-px-rep2-avg-latency-px-base-enterprise-master](./images/single-prod-async-3-px-rep2-avg-latency-px-base-enterprise-master.png)
 
 ## Single producer kafka repl = 3, px repl = 1 vs px repl = 3, kafka repl = 1
 
