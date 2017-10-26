@@ -2,34 +2,43 @@
 
 #set -x
 echo "Initializing..."
+
+if [[ -n "$1" ]]; then
 svcname=$1
+else
+svcname="portworx-service.kube-system.svc.cluster.local"
+fi
+
 echo $svcname
 
-result=$(nslookup $svcname | grep $svcname | grep Address | awk '{print $3}' | grep -oE ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$)
-echo "ClusterIP : $result"
-
-while [[ "$result" = "" ]]
-do
- echo "Waiting... Did not find the clusterIP"
- sleep 1
- result=$(nslookup $svcname | grep $svcname | grep Address | awk '{print $3}' | grep -oE ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ | tr -d '\n')
-done
-
-pxClusterStatus=$(curl -XGET http://$result:9001/v1/cluster/enumerate)
+pxClusterStatus=$(curl -XGET http://$svcname:9001/v1/cluster/enumerate)
 
 while [[ "$pxClusterStatus" = "" ]]
 do
  echo "Waiting... looks like the px pods arent ready yet"
  sleep 1
- pxClusterStatus=$(curl -XGET http://$result:9001/v1/cluster/enumerate)
+ pxClusterStatus=$(curl -XGET http://$svcname:9001/v1/cluster/enumerate)
 done
 
 echo $pxClusterStatus
-echo $pxClusterStatus >> /usr/bin/clusterState
 
-indexID=$(echo $pxClusterStatus | jq '.["Id"]+"-"+.["UID"]')
+indexID=$(echo $pxClusterStatus | jq -r '.["Id"]+"-"+.["UID"]')
 echo $indexID
 
-cat /tmp/fluent.conf
+if [[ -n "$2" ]]; then
+ELASTICSEARCH_HOST=$2
+else
+ELASTICSEARCH_HOST=34.211.24.146
+fi
+
+if [[ -n "$3" ]]; then
+ELASTICSEARCH_PORT=$3
+else
+ELASTICSEARCH_PORT=31737
+fi
 
 sed -i "s/#indexUUID#/$indexID/g" /tmp/fluent.conf
+sed -i "s/#ELASTICSEARCH_PORT#/$ELASTICSEARCH_PORT/g" /tmp/fluent.conf
+sed -i "s/#ELASTICSEARCH_HOST#/$ELASTICSEARCH_HOST/g" /tmp/fluent.conf
+
+cat /tmp/fluent.conf
