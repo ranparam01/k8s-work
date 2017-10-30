@@ -47,12 +47,6 @@ WORKDIR /elasticsearch
 # Copy configuration
 COPY config /elasticsearch/config
 
-# Copy Readonly rest plugin and install it. 
-COPY readonlyrest/readonlyrest_es5.5.0.zip /tmp/
-RUN /elasticsearch/bin/elasticsearch-plugin install file:/tmp/readonlyrest_es5.5.0.zip
-COPY keystore.jks /elasticsearch/plugins/readonlyrest/
-
-
 # Copy run script
 COPY run.sh /
 
@@ -70,6 +64,12 @@ ENV NUMBER_OF_MASTERS 1
 ENV MAX_LOCAL_STORAGE_NODES 1
 ENV SHARD_ALLOCATION_AWARENESS ""
 ENV SHARD_ALLOCATION_AWARENESS_ATTR ""
+
+# Copy Readonly rest plugin and install it. 
+COPY readonlyrest/readonlyrest_es5.5.0.zip /tmp/
+RUN /elasticsearch/bin/elasticsearch-plugin install file:/tmp/readonlyrest_es5.5.0.zip
+COPY keystore.jks /elasticsearch/plugins/readonlyrest/
+
 
 # Volume for Elasticsearch data
 VOLUME ["/data"]
