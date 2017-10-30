@@ -1,5 +1,5 @@
 FROM quay.io/pires/docker-jre:8u131_alpine3.6.2
-MAINTAINER pjpires@gmail.com
+MAINTAINER hrishikesh.deodhar@gmail.com
 
 # Export HTTP & Transport
 EXPOSE 9200 9300
@@ -46,6 +46,12 @@ WORKDIR /elasticsearch
 
 # Copy configuration
 COPY config /elasticsearch/config
+
+# Copy Readonly rest plugin and install it. 
+COPY readonlyrest/readonlyrest_es5.5.0.zip /tmp/
+RUN /elasticsearch/bin/elasticsearch-plugin install file:/tmp/readonlyrest_es5.5.0.zip
+COPY keystore.jks /elasticsearch/plugins/readonlyrest/
+
 
 # Copy run script
 COPY run.sh /

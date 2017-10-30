@@ -1,3 +1,7 @@
+# Forked from pires/elastic-search. Thankyou so much !
+Specific usecase for me was that i need the `readonlyrest` plugin as part of my elasticsearch cluster to enable authentication. 
+Rest of the image is untouched and all the instructions below hold good. 
+
 # docker-elasticsearch
 
 Lean (128MB) and highly configurable Elasticsearch Docker image.
