@@ -3,10 +3,11 @@ cluster:
 
 node:
   master: ${NODE_MASTER}
-  name: ${NODE_NAME}
   data: ${NODE_DATA}
+  name: ${NODE_NAME}
   ingest: ${NODE_INGEST}
   max_local_storage_nodes: ${MAX_LOCAL_STORAGE_NODES}
+
 network.host: ${NETWORK_HOST}
 
 path:
@@ -14,7 +15,7 @@ path:
   logs: /data/log
 
 bootstrap:
-  memory_lock: true
+  memory_lock: ${MEMORY_LOCK}
 
 http:
   enabled: ${HTTP_ENABLE}
@@ -25,4 +26,31 @@ http:
 
 discovery:
   zen:
+    ping.unicast.hosts: ${DISCOVERY_SERVICE}
     minimum_master_nodes: ${NUMBER_OF_MASTERS}
+
+readonlyrest:
+ enable: true
+ response_if_req_forbidden: Access denied!!!
+
+ access_control_rules:
+
+  - name: "::Fluent::"
+    auth_key_sha256: 4a3ed03fad11356fdb0ef88fc9cfb53f77a96bbdae83571a07ab779c5f5e73ca
+    type: allow
+    actions: ["indices:admin/create","indices:data/write/index","indices:data/write/bulk","indices:data/write/bulk[s]"]
+ 
+  - name: "::read::"
+    auth_key_sha256: f201f399bd7da432b5335144e1f95da57a2ad9472e2fd11ad6e7b341cfc721c9
+    actions: ["indices:data/read/*","indices:data/write/*","indices:admin/template/*","indices:admin/create","cluster:monitor/main"]
+
+  - name: "::Kibana server::"
+    auth_key_sha256: 79f3d4a13cd1abd4b7d4cb025f92062e02c2004f2c4dd16fdae803ebdacda1fb
+    type: allow
+
+  - name: "::Kibana user::"
+    auth_key_sha256: b26b8e58e0cd42fb6c4aa26698cfd4252b9e09ddd04c4e2db8f35e874c2289d9
+    type: allow
+    kibana_access: rw
+    indices: [".kibana*","log-*"]
+
