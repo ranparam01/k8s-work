@@ -28,7 +28,7 @@ spec:
             add:
               - IPC_LOCK
               - SYS_RESOURCE
-        image: quay.io/pires/docker-elasticsearch-kubernetes:5.5.0
+        image: hrishi/docker-elasticsearch-k8s:v1 #quay.io/pires/docker-elasticsearch-kubernetes:5.5.0
         imagePullPolicy: Always
         env:
         - name: NAMESPACE
@@ -48,9 +48,7 @@ spec:
         - name: HTTP_ENABLE
           value: "true"
         - name: "ES_JAVA_OPTS"
-          value: "-Xms512m -Xmx512m"
-        - name: "ES_PLUGINS_INSTALL"
-          value: "com.floragunn:search-guard-5:5.5.0-16"          
+          value: "-Xms256m -Xmx256m"
         ports:
         - containerPort: 9200
           name: http

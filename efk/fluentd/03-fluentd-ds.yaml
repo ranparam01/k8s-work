@@ -20,10 +20,11 @@ spec:
       serviceAccountName: fluentd
       initContainers:
       - name: fluentd-init
-        image: hrishi/fluentd-initutils:v10
+        image: hrishi/fluentd-initutils:v24
         securityContext:
           privileged: true
-        command: ['sh','-c','/usr/bin/init-fluentd.sh portworx-service']
+        command: ['/bin/sh']
+        args: ['-c','/usr/bin/init-fluentd.sh portworx-service']
         volumeMounts:
         - name: config
           mountPath: /tmp

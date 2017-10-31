@@ -71,7 +71,7 @@ data:
        flush_interval 60s  # flushes events ever minute. Can be configured as needed.
        max_retry_wait 30
        disable_retry_limit
-       num_threads 4
+       num_threads 2
     </match>
 
     <match journal.kubelet.**>
@@ -87,7 +87,7 @@ data:
        flush_interval 60s  # flushes events ever minute. Can be configured as needed.
        max_retry_wait 30
        disable_retry_limit
-       num_threads 4
+       num_threads 2
     </match>
 
     <match portworx.**>
@@ -97,12 +97,14 @@ data:
        logstash_prefix #indexUUID#.pxLog ## Prefix for creating an Elastic search index.
        host #ELASTICSEARCH_HOST# ## Hostname of the ES cluster.
        port #ELASTICSEARCH_PORT#
+       user fluent
+       password # Enter the password for the user to connect to ES
        logstash_format true
        buffer_chunk_limit 2M
        buffer_queue_limit 32
        flush_interval 60s  # flushes events ever minute. Can be configured as needed.
        max_retry_wait 30
        disable_retry_limit
-       num_threads 4
+       num_threads 2
     </match>
 ---

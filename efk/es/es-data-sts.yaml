@@ -60,7 +60,7 @@ spec:
   - metadata:
       name: px-storage
       annotations:
-        volume.beta.kubernetes.io/storage-class: px-data-sc
+        volume.beta.kubernetes.io/storage-class: portworx-sc
     spec:
       accessModes: [ "ReadWriteOnce" ]
       resources:
