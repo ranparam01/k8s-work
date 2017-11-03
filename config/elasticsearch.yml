@@ -36,21 +36,21 @@ readonlyrest:
  access_control_rules:
 
   - name: "::Fluent::"
-    auth_key_sha256: 4a3ed03fad11356fdb0ef88fc9cfb53f77a96bbdae83571a07ab779c5f5e73ca
+    auth_key_sha256: 0e2544358ef481bf6579c1ea18fc45e9de18318dda341e4607ae988ee52869be
     type: allow
-    actions: ["indices:admin/create","indices:data/write/index","indices:data/write/bulk","indices:data/write/bulk[s]"]
+    actions: ["indices:admin/create","indices:data/write/index","indices:data/write/bulk","indices:data/write/bulk[s]","indices:admin/flush","indices:admin/mapping/put","cluster:monitor/main"]
  
   - name: "::read::"
     auth_key_sha256: f201f399bd7da432b5335144e1f95da57a2ad9472e2fd11ad6e7b341cfc721c9
-    actions: ["indices:data/read/*","indices:data/write/*","indices:admin/template/*","indices:admin/create","cluster:monitor/main"]
+    actions: ["indices:data/read/*","indices:data/write/*","indices:admin/template/*","indices:admin/create","cluster:monitor/main","cluster:monitor/state"]
 
   - name: "::Kibana server::"
-    auth_key_sha256: 79f3d4a13cd1abd4b7d4cb025f92062e02c2004f2c4dd16fdae803ebdacda1fb
+    auth_key_sha256: 95b485e3d401108ade991aa5d15a3cf8b74268b0fa48460b35403cbb58c36cc5
     type: allow
 
   - name: "::Kibana user::"
-    auth_key_sha256: b26b8e58e0cd42fb6c4aa26698cfd4252b9e09ddd04c4e2db8f35e874c2289d9
+    auth_key_sha256: d5e369cb391e9365cc4a5b217ad4c08939be36856e06e55c348f98ab1b8f0ea4
     type: allow
-    kibana_access: rw
-    indices: [".kibana*","log-*"]
+    kibana_access: admin
+    indices: [".kibana*","log-*","*journal*","*px*","*kubelet*"]
 

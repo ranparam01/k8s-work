@@ -5,7 +5,6 @@ MAINTAINER hrishikesh.deodhar@gmail.com
 EXPOSE 9200 9300
 
 ENV ES_VERSION 5.5.0
-
 ENV DOWNLOAD_URL "https://artifacts.elastic.co/downloads/elasticsearch"
 ENV ES_TARBAL "${DOWNLOAD_URL}/elasticsearch-${ES_VERSION}.tar.gz"
 ENV ES_TARBALL_ASC "${DOWNLOAD_URL}/elasticsearch-${ES_VERSION}.tar.gz.asc"
@@ -64,20 +63,16 @@ ENV NUMBER_OF_MASTERS 1
 ENV MAX_LOCAL_STORAGE_NODES 1
 ENV SHARD_ALLOCATION_AWARENESS ""
 ENV SHARD_ALLOCATION_AWARENESS_ATTR ""
-
 # Set environment
 ENV DISCOVERY_SERVICE elasticsearch-discovery
 # Kubernetes requires swap is turned off, so memory lock is redundant
-
 ENV MEMORY_LOCK false
 ENV NODE_NAME $(uuidgen)
-
 
 # Copy Readonly rest plugin and install it. 
 COPY readonlyrest/readonlyrest_es5.5.0.zip /tmp/
 RUN /elasticsearch/bin/elasticsearch-plugin install file:/tmp/readonlyrest_es5.5.0.zip
 #COPY keystore.jks /elasticsearch/plugins/readonlyrest/
-
 
 # Volume for Elasticsearch data
 VOLUME ["/data"]
